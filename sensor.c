@@ -21,6 +21,7 @@
 #include "lwip/altcp_tls.h"
 #include <math.h> /* for fabs */
 #include "version_display.h"
+#include "ds18b20.h" /* for external temperature sensor */
 
 /* Configuration constants */
 
@@ -181,6 +182,24 @@ static float read_onboard_temperature(const char unit) {
     return -1.0f;
 }
 
+/**
+ * Read temperature from external DS18B20 sensor
+ */
+static float read_ds18b20_temperature(const char unit) {
+    float tempC = 0.0f;
+    ds18b20_result_t result = ds18b20_read_temperature(&tempC);
+    
+    if (result != DS18B20_OK) {
+        return -999.0f; // Return error value - simplified error handling
+    }
+    
+    if (unit == 'F') {
+        return tempC * 9.0f / 5.0f + 32.0f; // Simple conversion
+    }
+    
+    return tempC;
+}
+
 static void pub_request_cb(__unused void *arg, err_t err) {
     if (err != 0) {
         ERROR_printf("MQTT publish callback failed with error %d\n", err);
@@ -218,27 +237,27 @@ static void publish_ha_discovery(MQTT_CLIENT_DATA_T *state) {
     char state_topic[MQTT_TOPIC_LEN];
     char availability_topic[MQTT_TOPIC_LEN];
     
-    // Temperature sensor discovery
-    snprintf(config_topic, sizeof(config_topic), 
-             "%s/sensor/%s/temperature/config", HA_DISCOVERY_PREFIX, state->device_id);
-    
-    snprintf(state_topic, sizeof(state_topic), 
-             "pico/%s/temperature", state->device_id);
-             
     snprintf(availability_topic, sizeof(availability_topic), 
              "pico/%s/status", state->device_id);
 
+    // Onboard temperature sensor discovery
+    snprintf(config_topic, sizeof(config_topic), 
+             "%s/sensor/%s/temperature_onboard/config", HA_DISCOVERY_PREFIX, state->device_id);
+    
+    snprintf(state_topic, sizeof(state_topic), 
+             "pico/%s/temperature_onboard", state->device_id);
+
     snprintf(config_payload, sizeof(config_payload),
         "{"
-        "\"name\":\"%s Temperature\","
+        "\"name\":\"Pico Onboard Temperature\","
         "\"device_class\":\"temperature\","
         "\"state_topic\":\"%s\","
         "\"availability_topic\":\"%s\","
         "\"payload_available\":\"online\","
         "\"payload_not_available\":\"offline\","
-        "\"unit_of_measurement\":\"%s\","
+        "\"unit_of_measurement\":\"°C\","
         "\"value_template\":\"{{ value_json.temperature }}\","
-        "\"unique_id\":\"%s_temperature\","
+        "\"unique_id\":\"%s_temperature_onboard\","
         "\"device\":{"
             "\"identifiers\":[\"%s\"],"
             "\"name\":\"%s\","
@@ -248,10 +267,8 @@ static void publish_ha_discovery(MQTT_CLIENT_DATA_T *state) {
         "},"
         "\"expire_after\":300"
         "}",
-        HA_DEVICE_NAME,
         state_topic,
         availability_topic,
-        (TEMPERATURE_UNITS == 'F') ? "°F" : "°C",
         state->device_id,
         state->device_id,
         HA_DEVICE_NAME,
@@ -259,18 +276,55 @@ static void publish_ha_discovery(MQTT_CLIENT_DATA_T *state) {
         HA_DEVICE_MANUFACTURER
     );
 
-    INFO_printf("Publishing HA discovery config:\n");
-    INFO_printf("Topic: %s\n", config_topic);
-    INFO_printf("Payload length: %d\n", strlen(config_payload));
+    INFO_printf("Publishing onboard sensor HA discovery config\n");
+    err_t result1 = mqtt_publish(state->mqtt_client_inst, config_topic, config_payload, 
+                strlen(config_payload), MQTT_PUBLISH_QOS, true, pub_request_cb, state);
+
+    // DS18B20 external temperature sensor discovery
+    snprintf(config_topic, sizeof(config_topic), 
+             "%s/sensor/%s/temperature_external/config", HA_DISCOVERY_PREFIX, state->device_id);
     
-    err_t result = mqtt_publish(state->mqtt_client_inst, config_topic, config_payload, 
+    snprintf(state_topic, sizeof(state_topic), 
+             "pico/%s/temperature_external", state->device_id);
+
+    snprintf(config_payload, sizeof(config_payload),
+        "{"
+        "\"name\":\"Pico External Temperature\","
+        "\"device_class\":\"temperature\","
+        "\"state_topic\":\"%s\","
+        "\"availability_topic\":\"%s\","
+        "\"payload_available\":\"online\","
+        "\"payload_not_available\":\"offline\","
+        "\"unit_of_measurement\":\"°C\","
+        "\"value_template\":\"{{ value_json.temperature }}\","
+        "\"unique_id\":\"%s_temperature_external\","
+        "\"device\":{"
+            "\"identifiers\":[\"%s\"],"
+            "\"name\":\"%s\","
+            "\"model\":\"%s\","
+            "\"manufacturer\":\"%s\","
+            "\"sw_version\":\"1.0\""
+        "},"
+        "\"expire_after\":300"
+        "}",
+        state_topic,
+        availability_topic,
+        state->device_id,
+        state->device_id,
+        HA_DEVICE_NAME,
+        HA_DEVICE_MODEL,
+        HA_DEVICE_MANUFACTURER
+    );
+
+    INFO_printf("Publishing external sensor HA discovery config\n");
+    err_t result2 = mqtt_publish(state->mqtt_client_inst, config_topic, config_payload, 
                 strlen(config_payload), MQTT_PUBLISH_QOS, true, pub_request_cb, state);
     
-    if (result == ERR_OK) {
-        INFO_printf("HA Discovery config published successfully\n");
+    if (result1 == ERR_OK && result2 == ERR_OK) {
+        INFO_printf("Both HA Discovery configs published successfully\n");
         state->ha_discovery_sent = true;
     } else {
-        ERROR_printf("Failed to publish HA discovery config, error: %d\n", result);
+        ERROR_printf("Failed to publish HA discovery configs, errors: %d, %d\n", result1, result2);
     }
 }
 
@@ -315,39 +369,74 @@ static void control_led(MQTT_CLIENT_DATA_T *state, bool on) {
 }
 
 static void publish_temperature(MQTT_CLIENT_DATA_T *state) {
-    static float old_temperature = -999.0; // Initialize with unlikely value
-    float temperature = read_onboard_temperature(TEMPERATURE_UNITS);
+    static float old_onboard_temp = -999.0; // Initialize with unlikely value
+    static float old_ds18b20_temp = -999.0; // Initialize with unlikely value
     
-    VERBOSE_printf("Raw temperature reading: %.2f°%c (old: %.2f°%c)\n", 
-                   temperature, TEMPERATURE_UNITS, old_temperature, TEMPERATURE_UNITS);
+    // Read both sensors
+    float onboard_temp = read_onboard_temperature(TEMPERATURE_UNITS);
+    float ds18b20_temp = read_ds18b20_temperature(TEMPERATURE_UNITS);
     
-    // Only publish if temperature has changed significantly (0.1 degree threshold)
-    if (fabs(temperature - old_temperature) > 0.1) {
-        old_temperature = temperature;
+    DEBUG_printf("Raw temperature readings: Onboard=%.2f, DS18B20=%.2f\n", 
+                   onboard_temp, ds18b20_temp);
+    
+    // Publish onboard temperature if changed significantly (0.1 degree threshold)
+    if (fabs(onboard_temp - old_onboard_temp) > 0.1) {
+        old_onboard_temp = onboard_temp;
         
-        // Create Home Assistant compatible topic
+        // Create Home Assistant compatible topic for onboard sensor
         char temperature_topic[MQTT_TOPIC_LEN];
         snprintf(temperature_topic, sizeof(temperature_topic), 
-                 "pico/%s/temperature", state->device_id);
+                 "pico/%s/temperature_onboard", state->device_id);
         
         // Create JSON payload for Home Assistant
         char temp_payload[100];
         snprintf(temp_payload, sizeof(temp_payload), 
-                 "{\"temperature\":%.2f}", temperature);
+                 "{\"temperature\":%.2f}", onboard_temp);
         
-        DEBUG_printf("Temperature payload: %s\n", temp_payload);
-        INFO_printf("Publishing temperature %.2f°%c to %s\n", 
-                   temperature, TEMPERATURE_UNITS, temperature_topic);
+        DEBUG_printf("Onboard temperature payload: %s\n", temp_payload);
+        INFO_printf("Publishing onboard temperature %.2f to %s\n", 
+                   onboard_temp, temperature_topic);
         
         err_t result = mqtt_publish(state->mqtt_client_inst, temperature_topic, temp_payload, 
                     strlen(temp_payload), MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN, 
                     pub_request_cb, state);
         
         if (result != ERR_OK) {
-            ERROR_printf("Failed to publish temperature, error: %d\n", result);
+            ERROR_printf("Failed to publish onboard temperature, error: %d\n", result);
         } else {
-            INFO_printf("Temperature published successfully\n");
+            INFO_printf("Onboard temperature published successfully\n");
         }
+    }
+    
+    // Publish DS18B20 temperature if valid and changed significantly
+    if (ds18b20_temp > -999.0f && fabs(ds18b20_temp - old_ds18b20_temp) > 0.1) {
+        old_ds18b20_temp = ds18b20_temp;
+        
+        // Create Home Assistant compatible topic for DS18B20 sensor
+        char ds18b20_topic[MQTT_TOPIC_LEN];
+        snprintf(ds18b20_topic, sizeof(ds18b20_topic), 
+                 "pico/%s/temperature_external", state->device_id);
+        
+        // Create JSON payload for Home Assistant
+        char ds18b20_payload[100];
+        snprintf(ds18b20_payload, sizeof(ds18b20_payload), 
+                 "{\"temperature\":%.2f}", ds18b20_temp);
+        
+        DEBUG_printf("DS18B20 temperature payload: %s\n", ds18b20_payload);
+        INFO_printf("Publishing DS18B20 temperature %.2f to %s\n", 
+                   ds18b20_temp, ds18b20_topic);
+        
+        err_t result = mqtt_publish(state->mqtt_client_inst, ds18b20_topic, ds18b20_payload, 
+                    strlen(ds18b20_payload), MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN, 
+                    pub_request_cb, state);
+        
+        if (result != ERR_OK) {
+            ERROR_printf("Failed to publish DS18B20 temperature, error: %d\n", result);
+        } else {
+            INFO_printf("DS18B20 temperature published successfully\n");
+        }
+    } else if (ds18b20_temp <= -999.0f) {
+        DEBUG_printf("DS18B20 sensor not available or error reading\n");
     }
 }
 
@@ -558,6 +647,16 @@ int main(void) {
     adc_init();
     adc_set_temp_sensor_enabled(true);
     adc_select_input(4);
+
+    // Initialize DS18B20 external temperature sensor
+    INFO_printf("Initializing DS18B20 sensor on GPIO 2...\n");
+    ds18b20_result_t ds18b20_result = ds18b20_init(2);
+    if (ds18b20_result == DS18B20_OK) {
+        INFO_printf("DS18B20 sensor initialized successfully\n");
+    } else {
+        WARN_printf("DS18B20 sensor initialization failed: %s\n", ds18b20_error_string(ds18b20_result));
+        WARN_printf("External temperature sensor will not be available\n");
+    }
 
     static MQTT_CLIENT_DATA_T state;
 

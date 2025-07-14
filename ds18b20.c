@@ -43,7 +43,7 @@ ds18b20_result_t ds18b20_init(unsigned int gpio_pin) {
     gpio_pull_up(ds18b20_gpio);
     
     // Small delay for GPIO to settle
-    sleep_ms(10);
+    busy_wait_us(10000); // 10ms in microseconds
     
     // Test if sensor responds
     uint32_t ints = save_and_disable_interrupts();
@@ -186,7 +186,7 @@ ds18b20_result_t ds18b20_read_temperature(float *temperature_c) {
     ds18b20_write_byte(DS18B20_CONVERT_T);
     
     // Wait for conversion (750ms for 12-bit resolution)
-    sleep_ms(750);
+    busy_wait_us(750000); // 750ms in microseconds
     
     // Read scratchpad
     if (!ds18b20_reset()) {

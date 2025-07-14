@@ -63,11 +63,12 @@ pico_enable_stdio_uart(pico_w_ping 0)
 # Note: pico-onewire library removed due to C++ incompatibility with C project
 
 # Sensor application
-add_executable(pico_w_sensor sensor.c version_display.c)
+add_executable(pico_w_sensor sensor.c ds18b20.c version_display.c)
 target_include_directories(pico_w_sensor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(pico_w_sensor
     pico_stdlib
     hardware_adc
+    hardware_gpio
     pico_cyw43_arch_lwip_threadsafe_background
     pico_lwip_mqtt
     pico_mbedtls
