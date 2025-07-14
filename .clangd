@@ -1,0 +1,11 @@
+# Clangd configuration
+# Disable clangd formatting to prefer clang-format
+CompileFlags:
+  Add: [-std=c11, -Wall, -Wextra]
+  
+# Use clang-format for formatting instead of clangd
+---
+If:
+  PathMatch: .*\.(c|h|cpp|hpp)$
+CompileFlags:
+  Add: [-DPICO_W, -DPICO_SDK, -DWIFI_SSID, -DWIFI_PASSWORD]

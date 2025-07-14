@@ -1,7 +1,7 @@
 /**
  * Pico W Home Assistant Sensor
  * Based on Raspberry Pi Pico examples
- * 
+ *
  * Copyright (c) 2024 Peter Westlund
  * Original Pico examples: Copyright (c) 2022 Raspberry Pi (Trading) Ltd.
  *
@@ -67,15 +67,15 @@
 #endif
 
 #ifndef MQTT_TOPIC_LEN
-#define MQTT_TOPIC_LEN 200  // Increased for HA discovery topics
+#define MQTT_TOPIC_LEN 200 // Increased for HA discovery topics
 #endif
 
 #ifndef MQTT_CONFIG_LEN
-#define MQTT_CONFIG_LEN 1000  // For HA discovery config payloads
+#define MQTT_CONFIG_LEN 1000 // For HA discovery config payloads
 #endif
 
 typedef struct {
-    mqtt_client_t* mqtt_client_inst;
+    mqtt_client_t *mqtt_client_inst;
     struct mqtt_connect_client_info_t mqtt_client_info;
     char data[MQTT_OUTPUT_RINGBUF_SIZE];
     char topic[MQTT_TOPIC_LEN];
@@ -84,15 +84,15 @@ typedef struct {
     bool connect_done;
     int subscribe_count;
     bool stop_client;
-    char device_id[16];  // Unique device identifier
-    bool ha_discovery_sent;  // Track if HA discovery has been sent
-    absolute_time_t discovery_send_time;  // When to send discovery
+    char device_id[16];                  // Unique device identifier
+    bool ha_discovery_sent;              // Track if HA discovery has been sent
+    absolute_time_t discovery_send_time; // When to send discovery
 } MQTT_CLIENT_DATA_T;
 
 /* Debug level configuration
  * 0 = No debug output (ERRORS only)
  * 1 = ERROR + WARN
- * 2 = ERROR + WARN + INFO  
+ * 2 = ERROR + WARN + INFO
  * 3 = ERROR + WARN + INFO + DEBUG
  * 4 = ERROR + WARN + INFO + DEBUG + VERBOSE
  * Note: DEBUG_LEVEL is now defined via CMake build system
@@ -100,7 +100,7 @@ typedef struct {
 
 /* Debug macros based on debug level */
 #ifndef ERROR_printf
-#define ERROR_printf printf  /* Always enabled */
+#define ERROR_printf printf /* Always enabled */
 #endif
 
 #ifndef WARN_printf
@@ -136,22 +136,23 @@ typedef struct {
 #endif
 
 /* Timing constants */
-#define TEMP_WORKER_TIME_S      10  /* Temperature measurement interval in seconds */
-#define MQTT_KEEP_ALIVE_S       30  /* MQTT keep-alive interval - reduced for better connection detection */
+#define TEMP_WORKER_TIME_S 10 /* Temperature measurement interval in seconds */
+#define MQTT_KEEP_ALIVE_S                                                                          \
+    30 /* MQTT keep-alive interval - reduced for better connection detection */
 
 /* MQTT QoS settings
  * QoS 0: At most once delivery
- * QoS 1: At least once delivery  
+ * QoS 1: At least once delivery
  * QoS 2: Exactly once delivery
  */
-#define MQTT_SUBSCRIBE_QOS      1
-#define MQTT_PUBLISH_QOS        1
-#define MQTT_PUBLISH_RETAIN     0
+#define MQTT_SUBSCRIBE_QOS 1
+#define MQTT_PUBLISH_QOS 1
+#define MQTT_PUBLISH_RETAIN 0
 
 /* Last Will and Testament configuration */
-#define MQTT_WILL_TOPIC         "/online"
-#define MQTT_WILL_MSG           "0"
-#define MQTT_WILL_QOS           1
+#define MQTT_WILL_TOPIC "/online"
+#define MQTT_WILL_MSG "0"
+#define MQTT_WILL_QOS 1
 
 #ifndef MQTT_DEVICE_NAME
 #define MQTT_DEVICE_NAME "pico"
@@ -166,11 +167,10 @@ typedef struct {
  * raspberry-pi-pico-c-sdk.pdf, Section '4.1.1. hardware_adc'
  * pico-examples/adc/adc_console/adc_console.c */
 static float read_onboard_temperature(const char unit) {
-
     /* 12-bit conversion, assume max value == ADC_VREF == 3.3 V */
     const float conversionFactor = 3.3f / (1 << 12);
 
-    float adc = (float)adc_read() * conversionFactor;
+    float adc = (float) adc_read() * conversionFactor;
     float tempC = 27.0f - (adc - 0.706f) / 0.001721f;
 
     if (unit == 'C' || unit != 'F') {
@@ -188,22 +188,22 @@ static float read_onboard_temperature(const char unit) {
 static float read_ds18b20_temperature(const char unit) {
     float tempC = 0.0f;
     ds18b20_result_t result = ds18b20_read_temperature(&tempC);
-    
+
     if (result != DS18B20_OK) {
         return -999.0f; // Return error value - simplified error handling
     }
-    
+
     if (unit == 'F') {
         return tempC * 9.0f / 5.0f + 32.0f; // Simple conversion
     }
-    
+
     return tempC;
 }
 
 static void pub_request_cb(__unused void *arg, err_t err) {
     if (err != 0) {
         ERROR_printf("MQTT publish callback failed with error %d\n", err);
-        switch(err) {
+        switch (err) {
             case ERR_MEM:
                 ERROR_printf("  -> Out of memory\n");
                 break;
@@ -236,90 +236,77 @@ static void publish_ha_discovery(MQTT_CLIENT_DATA_T *state) {
     char config_payload[MQTT_CONFIG_LEN];
     char state_topic[MQTT_TOPIC_LEN];
     char availability_topic[MQTT_TOPIC_LEN];
-    
-    snprintf(availability_topic, sizeof(availability_topic), 
-             "pico/%s/status", state->device_id);
+
+    snprintf(availability_topic, sizeof(availability_topic), "pico/%s/status", state->device_id);
 
     // Onboard temperature sensor discovery
-    snprintf(config_topic, sizeof(config_topic), 
-             "%s/sensor/%s/temperature_onboard/config", HA_DISCOVERY_PREFIX, state->device_id);
-    
-    snprintf(state_topic, sizeof(state_topic), 
-             "pico/%s/temperature_onboard", state->device_id);
+    snprintf(config_topic, sizeof(config_topic), "%s/sensor/%s/temperature_onboard/config",
+             HA_DISCOVERY_PREFIX, state->device_id);
+
+    snprintf(state_topic, sizeof(state_topic), "pico/%s/temperature_onboard", state->device_id);
 
     snprintf(config_payload, sizeof(config_payload),
-        "{"
-        "\"name\":\"Pico Onboard Temperature\","
-        "\"device_class\":\"temperature\","
-        "\"state_topic\":\"%s\","
-        "\"availability_topic\":\"%s\","
-        "\"payload_available\":\"online\","
-        "\"payload_not_available\":\"offline\","
-        "\"unit_of_measurement\":\"°C\","
-        "\"value_template\":\"{{ value_json.temperature }}\","
-        "\"unique_id\":\"%s_temperature_onboard\","
-        "\"device\":{"
-            "\"identifiers\":[\"%s\"],"
-            "\"name\":\"%s\","
-            "\"model\":\"%s\","
-            "\"manufacturer\":\"%s\","
-            "\"sw_version\":\"1.0\""
-        "},"
-        "\"expire_after\":300"
-        "}",
-        state_topic,
-        availability_topic,
-        state->device_id,
-        state->device_id,
-        HA_DEVICE_NAME,
-        HA_DEVICE_MODEL,
-        HA_DEVICE_MANUFACTURER
-    );
+             "{"
+             "\"name\":\"Pico Onboard Temperature\","
+             "\"device_class\":\"temperature\","
+             "\"state_topic\":\"%s\","
+             "\"availability_topic\":\"%s\","
+             "\"payload_available\":\"online\","
+             "\"payload_not_available\":\"offline\","
+             "\"unit_of_measurement\":\"°C\","
+             "\"value_template\":\"{{ value_json.temperature }}\","
+             "\"unique_id\":\"%s_temperature_onboard\","
+             "\"device\":{"
+             "\"identifiers\":[\"%s\"],"
+             "\"name\":\"%s\","
+             "\"model\":\"%s\","
+             "\"manufacturer\":\"%s\","
+             "\"sw_version\":\"1.0\""
+             "},"
+             "\"expire_after\":300"
+             "}",
+             state_topic, availability_topic, state->device_id, state->device_id, HA_DEVICE_NAME,
+             HA_DEVICE_MODEL, HA_DEVICE_MANUFACTURER);
 
     INFO_printf("Publishing onboard sensor HA discovery config\n");
-    err_t result1 = mqtt_publish(state->mqtt_client_inst, config_topic, config_payload, 
-                strlen(config_payload), MQTT_PUBLISH_QOS, true, pub_request_cb, state);
+    err_t result1 =
+        mqtt_publish(state->mqtt_client_inst, config_topic, config_payload, strlen(config_payload),
+                     MQTT_PUBLISH_QOS, true, pub_request_cb, state);
 
     // DS18B20 external temperature sensor discovery
-    snprintf(config_topic, sizeof(config_topic), 
-             "%s/sensor/%s/temperature_external/config", HA_DISCOVERY_PREFIX, state->device_id);
-    
-    snprintf(state_topic, sizeof(state_topic), 
-             "pico/%s/temperature_external", state->device_id);
+    snprintf(config_topic, sizeof(config_topic), "%s/sensor/%s/temperature_external/config",
+             HA_DISCOVERY_PREFIX, state->device_id);
+
+    snprintf(state_topic, sizeof(state_topic), "pico/%s/temperature_external", state->device_id);
 
     snprintf(config_payload, sizeof(config_payload),
-        "{"
-        "\"name\":\"Pico External Temperature\","
-        "\"device_class\":\"temperature\","
-        "\"state_topic\":\"%s\","
-        "\"availability_topic\":\"%s\","
-        "\"payload_available\":\"online\","
-        "\"payload_not_available\":\"offline\","
-        "\"unit_of_measurement\":\"°C\","
-        "\"value_template\":\"{{ value_json.temperature }}\","
-        "\"unique_id\":\"%s_temperature_external\","
-        "\"device\":{"
-            "\"identifiers\":[\"%s\"],"
-            "\"name\":\"%s\","
-            "\"model\":\"%s\","
-            "\"manufacturer\":\"%s\","
-            "\"sw_version\":\"1.0\""
-        "},"
-        "\"expire_after\":300"
-        "}",
-        state_topic,
-        availability_topic,
-        state->device_id,
-        state->device_id,
-        HA_DEVICE_NAME,
-        HA_DEVICE_MODEL,
-        HA_DEVICE_MANUFACTURER
-    );
+             "{"
+             "\"name\":\"Pico External Temperature\","
+             "\"device_class\":\"temperature\","
+             "\"state_topic\":\"%s\","
+             "\"availability_topic\":\"%s\","
+             "\"payload_available\":\"online\","
+             "\"payload_not_available\":\"offline\","
+             "\"unit_of_measurement\":\"°C\","
+             "\"value_template\":\"{{ value_json.temperature }}\","
+             "\"unique_id\":\"%s_temperature_external\","
+             "\"device\":{"
+             "\"identifiers\":[\"%s\"],"
+             "\"name\":\"%s\","
+             "\"model\":\"%s\","
+             "\"manufacturer\":\"%s\","
+             "\"sw_version\":\"1.0\""
+             "},"
+             "\"expire_after\":300"
+             "}",
+             state_topic, availability_topic, state->device_id, state->device_id, HA_DEVICE_NAME,
+             HA_DEVICE_MODEL, HA_DEVICE_MANUFACTURER);
 
     INFO_printf("Publishing external sensor HA discovery config\n");
-    err_t result2 = mqtt_publish(state->mqtt_client_inst, config_topic, config_payload, 
-                strlen(config_payload), MQTT_PUBLISH_QOS, true, pub_request_cb, state);
-    
+    err_t result2 =
+        mqtt_publish(state->mqtt_client_inst, config_topic, config_payload, strlen(config_payload),
+                     MQTT_PUBLISH_QOS, true, pub_request_cb, state);
+
     if (result1 == ERR_OK && result2 == ERR_OK) {
         INFO_printf("Both HA Discovery configs published successfully\n");
         state->ha_discovery_sent = true;
@@ -330,16 +317,15 @@ static void publish_ha_discovery(MQTT_CLIENT_DATA_T *state) {
 
 static void publish_ha_availability(MQTT_CLIENT_DATA_T *state, bool online) {
     char availability_topic[MQTT_TOPIC_LEN];
-    snprintf(availability_topic, sizeof(availability_topic), 
-             "pico/%s/status", state->device_id);
-    
-    const char* status = online ? "online" : "offline";
+    snprintf(availability_topic, sizeof(availability_topic), "pico/%s/status", state->device_id);
+
+    const char *status = online ? "online" : "offline";
     INFO_printf("Publishing availability: %s to %s\n", status, availability_topic);
-    
+
     // Don't use lwip locking here since we're already in a callback
-    err_t result = mqtt_publish(state->mqtt_client_inst, availability_topic, status, 
-                strlen(status), MQTT_PUBLISH_QOS, true, pub_request_cb, state);
-    
+    err_t result = mqtt_publish(state->mqtt_client_inst, availability_topic, status, strlen(status),
+                                MQTT_PUBLISH_QOS, true, pub_request_cb, state);
+
     if (result != ERR_OK) {
         ERROR_printf("Failed to publish availability, error: %d\n", result);
     } else {
@@ -359,77 +345,74 @@ static const char *full_topic(MQTT_CLIENT_DATA_T *state, const char *name) {
 
 static void control_led(MQTT_CLIENT_DATA_T *state, bool on) {
     // Publish state on /state topic and on/off led board
-    const char* message = on ? "On" : "Off";
+    const char *message = on ? "On" : "Off";
     if (on)
         cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
     else
         cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
 
-    mqtt_publish(state->mqtt_client_inst, full_topic(state, "/led/state"), message, strlen(message), MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN, pub_request_cb, state);
+    mqtt_publish(state->mqtt_client_inst, full_topic(state, "/led/state"), message, strlen(message),
+                 MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN, pub_request_cb, state);
 }
 
 static void publish_temperature(MQTT_CLIENT_DATA_T *state) {
     static float old_onboard_temp = -999.0; // Initialize with unlikely value
     static float old_ds18b20_temp = -999.0; // Initialize with unlikely value
-    
+
     // Read both sensors
     float onboard_temp = read_onboard_temperature(TEMPERATURE_UNITS);
     float ds18b20_temp = read_ds18b20_temperature(TEMPERATURE_UNITS);
-    
-    DEBUG_printf("Raw temperature readings: Onboard=%.2f, DS18B20=%.2f\n", 
-                   onboard_temp, ds18b20_temp);
-    
+
+    DEBUG_printf("Raw temperature readings: Onboard=%.2f, DS18B20=%.2f\n", onboard_temp,
+                 ds18b20_temp);
+
     // Publish onboard temperature if changed significantly (0.1 degree threshold)
     if (fabs(onboard_temp - old_onboard_temp) > 0.1) {
         old_onboard_temp = onboard_temp;
-        
+
         // Create Home Assistant compatible topic for onboard sensor
         char temperature_topic[MQTT_TOPIC_LEN];
-        snprintf(temperature_topic, sizeof(temperature_topic), 
-                 "pico/%s/temperature_onboard", state->device_id);
-        
+        snprintf(temperature_topic, sizeof(temperature_topic), "pico/%s/temperature_onboard",
+                 state->device_id);
+
         // Create JSON payload for Home Assistant
         char temp_payload[100];
-        snprintf(temp_payload, sizeof(temp_payload), 
-                 "{\"temperature\":%.2f}", onboard_temp);
-        
+        snprintf(temp_payload, sizeof(temp_payload), "{\"temperature\":%.2f}", onboard_temp);
+
         DEBUG_printf("Onboard temperature payload: %s\n", temp_payload);
-        INFO_printf("Publishing onboard temperature %.2f to %s\n", 
-                   onboard_temp, temperature_topic);
-        
-        err_t result = mqtt_publish(state->mqtt_client_inst, temperature_topic, temp_payload, 
-                    strlen(temp_payload), MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN, 
-                    pub_request_cb, state);
-        
+        INFO_printf("Publishing onboard temperature %.2f to %s\n", onboard_temp, temperature_topic);
+
+        err_t result = mqtt_publish(state->mqtt_client_inst, temperature_topic, temp_payload,
+                                    strlen(temp_payload), MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN,
+                                    pub_request_cb, state);
+
         if (result != ERR_OK) {
             ERROR_printf("Failed to publish onboard temperature, error: %d\n", result);
         } else {
             INFO_printf("Onboard temperature published successfully\n");
         }
     }
-    
+
     // Publish DS18B20 temperature if valid and changed significantly
     if (ds18b20_temp > -999.0f && fabs(ds18b20_temp - old_ds18b20_temp) > 0.1) {
         old_ds18b20_temp = ds18b20_temp;
-        
+
         // Create Home Assistant compatible topic for DS18B20 sensor
         char ds18b20_topic[MQTT_TOPIC_LEN];
-        snprintf(ds18b20_topic, sizeof(ds18b20_topic), 
-                 "pico/%s/temperature_external", state->device_id);
-        
+        snprintf(ds18b20_topic, sizeof(ds18b20_topic), "pico/%s/temperature_external",
+                 state->device_id);
+
         // Create JSON payload for Home Assistant
         char ds18b20_payload[100];
-        snprintf(ds18b20_payload, sizeof(ds18b20_payload), 
-                 "{\"temperature\":%.2f}", ds18b20_temp);
-        
+        snprintf(ds18b20_payload, sizeof(ds18b20_payload), "{\"temperature\":%.2f}", ds18b20_temp);
+
         DEBUG_printf("DS18B20 temperature payload: %s\n", ds18b20_payload);
-        INFO_printf("Publishing DS18B20 temperature %.2f to %s\n", 
-                   ds18b20_temp, ds18b20_topic);
-        
-        err_t result = mqtt_publish(state->mqtt_client_inst, ds18b20_topic, ds18b20_payload, 
-                    strlen(ds18b20_payload), MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN, 
-                    pub_request_cb, state);
-        
+        INFO_printf("Publishing DS18B20 temperature %.2f to %s\n", ds18b20_temp, ds18b20_topic);
+
+        err_t result = mqtt_publish(state->mqtt_client_inst, ds18b20_topic, ds18b20_payload,
+                                    strlen(ds18b20_payload), MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN,
+                                    pub_request_cb, state);
+
         if (result != ERR_OK) {
             ERROR_printf("Failed to publish DS18B20 temperature, error: %d\n", result);
         } else {
@@ -441,7 +424,7 @@ static void publish_temperature(MQTT_CLIENT_DATA_T *state) {
 }
 
 static void sub_request_cb(void *arg, err_t err) {
-    MQTT_CLIENT_DATA_T* state = (MQTT_CLIENT_DATA_T*)arg;
+    MQTT_CLIENT_DATA_T *state = (MQTT_CLIENT_DATA_T *) arg;
     if (err != 0) {
         panic("subscribe request failed %d", err);
     }
@@ -449,7 +432,7 @@ static void sub_request_cb(void *arg, err_t err) {
 }
 
 static void unsub_request_cb(void *arg, err_t err) {
-    MQTT_CLIENT_DATA_T* state = (MQTT_CLIENT_DATA_T*)arg;
+    MQTT_CLIENT_DATA_T *state = (MQTT_CLIENT_DATA_T *) arg;
     if (err != 0) {
         panic("unsubscribe request failed %d", err);
     }
@@ -462,54 +445,61 @@ static void unsub_request_cb(void *arg, err_t err) {
     }
 }
 
-static void sub_unsub_topics(MQTT_CLIENT_DATA_T* state, bool sub) {
+static void sub_unsub_topics(MQTT_CLIENT_DATA_T *state, bool sub) {
     mqtt_request_cb_t cb = sub ? sub_request_cb : unsub_request_cb;
-    mqtt_sub_unsub(state->mqtt_client_inst, full_topic(state, "/led"), MQTT_SUBSCRIBE_QOS, cb, state, sub);
-    mqtt_sub_unsub(state->mqtt_client_inst, full_topic(state, "/print"), MQTT_SUBSCRIBE_QOS, cb, state, sub);
-    mqtt_sub_unsub(state->mqtt_client_inst, full_topic(state, "/ping"), MQTT_SUBSCRIBE_QOS, cb, state, sub);
-    mqtt_sub_unsub(state->mqtt_client_inst, full_topic(state, "/exit"), MQTT_SUBSCRIBE_QOS, cb, state, sub);
+    mqtt_sub_unsub(state->mqtt_client_inst, full_topic(state, "/led"), MQTT_SUBSCRIBE_QOS, cb,
+                   state, sub);
+    mqtt_sub_unsub(state->mqtt_client_inst, full_topic(state, "/print"), MQTT_SUBSCRIBE_QOS, cb,
+                   state, sub);
+    mqtt_sub_unsub(state->mqtt_client_inst, full_topic(state, "/ping"), MQTT_SUBSCRIBE_QOS, cb,
+                   state, sub);
+    mqtt_sub_unsub(state->mqtt_client_inst, full_topic(state, "/exit"), MQTT_SUBSCRIBE_QOS, cb,
+                   state, sub);
 }
 
 static void mqtt_incoming_data_cb(void *arg, const u8_t *data, u16_t len, u8_t flags) {
-    MQTT_CLIENT_DATA_T* state = (MQTT_CLIENT_DATA_T*)arg;
+    MQTT_CLIENT_DATA_T *state = (MQTT_CLIENT_DATA_T *) arg;
 #if MQTT_UNIQUE_TOPIC
     const char *basic_topic = state->topic + strlen(state->mqtt_client_info.client_id) + 1;
 #else
     const char *basic_topic = state->topic;
 #endif
-    strncpy(state->data, (const char *)data, len);
+    strncpy(state->data, (const char *) data, len);
     state->len = len;
     state->data[len] = '\0';
 
-    VERBOSE_printf("Raw MQTT data received: topic=%s, len=%d, flags=0x%x\n", state->topic, len, flags);
+    VERBOSE_printf("Raw MQTT data received: topic=%s, len=%d, flags=0x%x\n", state->topic, len,
+                   flags);
     DEBUG_printf("Topic: %s, Message: %s\n", state->topic, state->data);
-    if (strcmp(basic_topic, "/led") == 0)
-    {
-        if (lwip_stricmp((const char *)state->data, "On") == 0 || strcmp((const char *)state->data, "1") == 0)
+    if (strcmp(basic_topic, "/led") == 0) {
+        if (lwip_stricmp((const char *) state->data, "On") == 0 ||
+            strcmp((const char *) state->data, "1") == 0)
             control_led(state, true);
-        else if (lwip_stricmp((const char *)state->data, "Off") == 0 || strcmp((const char *)state->data, "0") == 0)
+        else if (lwip_stricmp((const char *) state->data, "Off") == 0 ||
+                 strcmp((const char *) state->data, "0") == 0)
             control_led(state, false);
     } else if (strcmp(basic_topic, "/print") == 0) {
         INFO_printf("%.*s\n", len, data);
     } else if (strcmp(basic_topic, "/ping") == 0) {
         char buf[11];
         snprintf(buf, sizeof(buf), "%u", to_ms_since_boot(get_absolute_time()) / 1000);
-        mqtt_publish(state->mqtt_client_inst, full_topic(state, "/uptime"), buf, strlen(buf), MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN, pub_request_cb, state);
+        mqtt_publish(state->mqtt_client_inst, full_topic(state, "/uptime"), buf, strlen(buf),
+                     MQTT_PUBLISH_QOS, MQTT_PUBLISH_RETAIN, pub_request_cb, state);
     } else if (strcmp(basic_topic, "/exit") == 0) {
-        state->stop_client = true; // stop the client when ALL subscriptions are stopped
+        state->stop_client = true;      // stop the client when ALL subscriptions are stopped
         sub_unsub_topics(state, false); // unsubscribe
     }
 }
 
 static void mqtt_incoming_publish_cb(void *arg, const char *topic, u32_t tot_len) {
-    MQTT_CLIENT_DATA_T* state = (MQTT_CLIENT_DATA_T*)arg;
+    MQTT_CLIENT_DATA_T *state = (MQTT_CLIENT_DATA_T *) arg;
     strncpy(state->topic, topic, sizeof(state->topic));
 }
 
 static void temperature_worker_fn(async_context_t *context, async_at_time_worker_t *worker) {
-    MQTT_CLIENT_DATA_T* state = (MQTT_CLIENT_DATA_T*)worker->user_data;
+    MQTT_CLIENT_DATA_T *state = (MQTT_CLIENT_DATA_T *) worker->user_data;
     static int publish_step = 0;
-    
+
     // Check if MQTT is still connected
     if (!mqtt_client_is_connected(state->mqtt_client_inst)) {
         ERROR_printf("MQTT connection lost! Attempting to reconnect...\n");
@@ -518,8 +508,8 @@ static void temperature_worker_fn(async_context_t *context, async_at_time_worker
         async_context_add_at_time_worker_in_ms(context, worker, 5000); // Try again in 5 seconds
         return;
     }
-    
-    switch(publish_step) {
+
+    switch (publish_step) {
         case 0:
             // First run - publish availability
             INFO_printf("Step 1: Publishing availability\n");
@@ -527,7 +517,7 @@ static void temperature_worker_fn(async_context_t *context, async_at_time_worker
             publish_step++;
             async_context_add_at_time_worker_in_ms(context, worker, 2000); // Wait 2 seconds
             break;
-            
+
         case 1:
             // Second run - publish discovery
             INFO_printf("Step 2: Publishing HA discovery\n");
@@ -535,7 +525,7 @@ static void temperature_worker_fn(async_context_t *context, async_at_time_worker
             publish_step++;
             async_context_add_at_time_worker_in_ms(context, worker, 2000); // Wait 2 seconds
             break;
-            
+
         case 2:
             // Third run - publish initial temperature
             INFO_printf("Step 3: Publishing initial temperature\n");
@@ -543,7 +533,7 @@ static void temperature_worker_fn(async_context_t *context, async_at_time_worker
             publish_step++;
             async_context_add_at_time_worker_in_ms(context, worker, TEMP_WORKER_TIME_S * 1000);
             break;
-            
+
         default:
             // Normal operation - just publish temperature
             INFO_printf("Normal operation: Publishing temperature\n");
@@ -552,17 +542,17 @@ static void temperature_worker_fn(async_context_t *context, async_at_time_worker
             break;
     }
 }
-static async_at_time_worker_t temperature_worker = { .do_work = temperature_worker_fn };
+static async_at_time_worker_t temperature_worker = {.do_work = temperature_worker_fn};
 
 static void mqtt_connection_cb(mqtt_client_t *client, void *arg, mqtt_connection_status_t status) {
-    MQTT_CLIENT_DATA_T* state = (MQTT_CLIENT_DATA_T*)arg;
+    MQTT_CLIENT_DATA_T *state = (MQTT_CLIENT_DATA_T *) arg;
     if (status == MQTT_CONNECT_ACCEPTED) {
         state->connect_done = true;
         INFO_printf("MQTT connected successfully!\n");
-        
+
         // Reset discovery flag for reconnection
         state->ha_discovery_sent = false;
-        
+
         // Subscribe to topics first
         sub_unsub_topics(state, true);
 
@@ -571,29 +561,30 @@ static void mqtt_connection_cb(mqtt_client_t *client, void *arg, mqtt_connection
 
         // Start temperature worker - this will handle all publishing
         temperature_worker.user_data = state;
-        async_context_add_at_time_worker_in_ms(cyw43_arch_async_context(), &temperature_worker, 1000); // Start after 1 second
-        
+        async_context_add_at_time_worker_in_ms(cyw43_arch_async_context(), &temperature_worker,
+                                               1000); // Start after 1 second
+
         INFO_printf("MQTT setup complete, publishing will start shortly\n");
     } else if (status == MQTT_CONNECT_DISCONNECTED) {
         ERROR_printf("MQTT disconnected!\n");
         state->connect_done = false;
-        
+
         // Check WiFi status
         int wifi_status = cyw43_wifi_link_status(&cyw43_state, CYW43_ITF_STA);
         INFO_printf("WiFi link status: %d\n", wifi_status);
-        
+
         if (wifi_status != CYW43_LINK_UP) {
             ERROR_printf("WiFi connection lost! Attempting to reconnect...\n");
             // Try to reconnect WiFi
-            if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000) == 0) {
+            if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD,
+                                                   CYW43_AUTH_WPA2_AES_PSK, 30000) == 0) {
                 INFO_printf("WiFi reconnected successfully\n");
                 // MQTT will try to reconnect automatically
             } else {
                 ERROR_printf("Failed to reconnect WiFi\n");
             }
         }
-    }
-    else {
+    } else {
         // Print the status code for debugging
         ERROR_printf("MQTT connection failed with status %d\n", status);
     }
@@ -616,20 +607,22 @@ static void start_client(MQTT_CLIENT_DATA_T *state) {
     INFO_printf("Connecting to mqtt server at %s\n", ipaddr_ntoa(&state->mqtt_server_address));
 
     cyw43_arch_lwip_begin();
-    if (mqtt_client_connect(state->mqtt_client_inst, &state->mqtt_server_address, port, mqtt_connection_cb, state, &state->mqtt_client_info) != ERR_OK) {
+    if (mqtt_client_connect(state->mqtt_client_inst, &state->mqtt_server_address, port,
+                            mqtt_connection_cb, state, &state->mqtt_client_info) != ERR_OK) {
         panic("MQTT broker connection error");
     }
 #if LWIP_ALTCP && LWIP_ALTCP_TLS
     // This is important for MBEDTLS_SSL_SERVER_NAME_INDICATION
     mbedtls_ssl_set_hostname(altcp_tls_context(state->mqtt_client_inst->conn), MQTT_SERVER);
 #endif
-    mqtt_set_inpub_callback(state->mqtt_client_inst, mqtt_incoming_publish_cb, mqtt_incoming_data_cb, state);
+    mqtt_set_inpub_callback(state->mqtt_client_inst, mqtt_incoming_publish_cb,
+                            mqtt_incoming_data_cb, state);
     cyw43_arch_lwip_end();
 }
 
 // Call back with a DNS result
 static void dns_found(const char *hostname, const ip_addr_t *ipaddr, void *arg) {
-    MQTT_CLIENT_DATA_T *state = (MQTT_CLIENT_DATA_T*)arg;
+    MQTT_CLIENT_DATA_T *state = (MQTT_CLIENT_DATA_T *) arg;
     if (ipaddr) {
         state->mqtt_server_address = *ipaddr;
         start_client(state);
@@ -641,7 +634,7 @@ static void dns_found(const char *hostname, const ip_addr_t *ipaddr, void *arg) 
 int main(void) {
     /* Initialize stdio and display version information */
     init_stdio_and_display_version_default("Pico W Home Assistant Sensor");
-    
+
     INFO_printf("MQTT client starting\n");
 
     adc_init();
@@ -654,7 +647,8 @@ int main(void) {
     if (ds18b20_result == DS18B20_OK) {
         INFO_printf("DS18B20 sensor initialized successfully\n");
     } else {
-        WARN_printf("DS18B20 sensor initialization failed: %s\n", ds18b20_error_string(ds18b20_result));
+        WARN_printf("DS18B20 sensor initialization failed: %s\n",
+                    ds18b20_error_string(ds18b20_result));
         WARN_printf("External temperature sensor will not be available\n");
     }
 
@@ -667,7 +661,7 @@ int main(void) {
     // Use board unique id
     char unique_id_buf[5];
     pico_get_unique_board_id_string(unique_id_buf, sizeof(unique_id_buf));
-    for(int i=0; i < sizeof(unique_id_buf) - 1; i++) {
+    for (int i = 0; i < sizeof(unique_id_buf) - 1; i++) {
         unique_id_buf[i] = tolower(unique_id_buf[i]);
     }
 
@@ -706,8 +700,9 @@ int main(void) {
     static const uint8_t client_key[] = TLS_CLIENT_KEY;
     static const uint8_t client_cert[] = TLS_CLIENT_CERT;
     // This confirms the indentity of the server and the client
-    state.mqtt_client_info.tls_config = altcp_tls_create_config_client_2wayauth(ca_cert, sizeof(ca_cert),
-            client_key, sizeof(client_key), NULL, 0, client_cert, sizeof(client_cert));
+    state.mqtt_client_info.tls_config = altcp_tls_create_config_client_2wayauth(
+        ca_cert, sizeof(ca_cert), client_key, sizeof(client_key), NULL, 0, client_cert,
+        sizeof(client_cert));
 #if ALTCP_MBEDTLS_AUTHMODE != MBEDTLS_SSL_VERIFY_REQUIRED
     WARN_printf("Warning: tls without verification is insecure\n");
 #endif
@@ -718,12 +713,13 @@ int main(void) {
 #endif
 
     cyw43_arch_enable_sta_mode();
-    
+
     // Disable WiFi power management to improve stability
     cyw43_wifi_pm(&cyw43_state, CYW43_NO_POWERSAVE_MODE);
     INFO_printf("WiFi power management disabled for better stability\n");
-    
-    if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000)) {
+
+    if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK,
+                                           30000)) {
         panic("Failed to connect");
     }
     INFO_printf("\nConnected to Wifi\n");
@@ -743,21 +739,22 @@ int main(void) {
 
     while (true) {
         cyw43_arch_poll();
-        
+
         // Check WiFi status periodically
         static absolute_time_t last_wifi_check = {0};
-        if (absolute_time_diff_us(last_wifi_check, get_absolute_time()) > 30000000) { // Check every 30 seconds
+        if (absolute_time_diff_us(last_wifi_check, get_absolute_time()) >
+            30000000) { // Check every 30 seconds
             last_wifi_check = get_absolute_time();
             int wifi_status = cyw43_wifi_link_status(&cyw43_state, CYW43_ITF_STA);
-            
+
             VERBOSE_printf("Periodic WiFi status check: status=%d\n", wifi_status);
-            
+
             // Get signal strength
             int32_t rssi = 0;
             if (wifi_status == CYW43_LINK_UP) {
                 cyw43_wifi_get_rssi(&cyw43_state, &rssi);
                 INFO_printf("WiFi RSSI: %d dBm\n", rssi);
-                
+
                 // Warn if signal is weak (below -70 dBm is considered weak)
                 if (rssi < -70) {
                     WARN_printf("Weak WiFi signal detected: %d dBm\n", rssi);
@@ -766,25 +763,27 @@ int main(void) {
                 ERROR_printf("WiFi connection lost! Status: %d\n", wifi_status);
                 // Try immediate WiFi reconnection
                 ERROR_printf("Attempting WiFi reconnection...\n");
-                if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000) == 0) {
+                if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD,
+                                                       CYW43_AUTH_WPA2_AES_PSK, 30000) == 0) {
                     INFO_printf("WiFi reconnected successfully\n");
                 } else {
                     ERROR_printf("Failed to reconnect WiFi\n");
                 }
             }
         }
-        
+
         // If MQTT disconnected, try to reconnect
         if (state.connect_done && !mqtt_client_is_connected(state.mqtt_client_inst)) {
             static absolute_time_t last_reconnect_attempt = {0};
-            if (absolute_time_diff_us(last_reconnect_attempt, get_absolute_time()) > 10000000) { // Try every 10 seconds
+            if (absolute_time_diff_us(last_reconnect_attempt, get_absolute_time()) >
+                10000000) { // Try every 10 seconds
                 last_reconnect_attempt = get_absolute_time();
                 ERROR_printf("Attempting MQTT reconnection...\n");
                 state.connect_done = false;
                 start_client(&state);
             }
         }
-        
+
         cyw43_arch_wait_for_work_until(make_timeout_time_ms(1000));
     }
 }

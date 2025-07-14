@@ -1,7 +1,7 @@
 /**
  * Pico W Ping Network Utility
  * Based on Raspberry Pi Pico examples
- * 
+ *
  * Copyright (c) 2024 Peter Westlund
  * Original Pico examples: Copyright (c) 2022 Raspberry Pi (Trading) Ltd.
  *
@@ -20,10 +20,10 @@
 #include "version_display.h"
 
 /* Network configuration constants */
-#define PING_TARGET_IP_STR      "192.168.86.1"      /* Default ping target */
-#define PING_TIMEOUT_MS         5000                /* Ping timeout in milliseconds */
-#define PING_INTERVAL_MS        10000               /* Interval between pings */
-#define PING_SIZE               (sizeof(struct icmp_echo_hdr) + 32)  /* Ping packet size */
+#define PING_TARGET_IP_STR "192.168.86.1"             /* Default ping target */
+#define PING_TIMEOUT_MS 5000                          /* Ping timeout in milliseconds */
+#define PING_INTERVAL_MS 10000                        /* Interval between pings */
+#define PING_SIZE (sizeof(struct icmp_echo_hdr) + 32) /* Ping packet size */
 
 /* Global variables */
 static uint16_t ping_seq_num = 0;
@@ -34,35 +34,31 @@ static bool ping_in_flight = false;
 
 /**
  * Callback function for receiving ping responses
- * 
+ *
  * @param arg User argument (unused)
  * @param pcb Protocol Control Block
  * @param p Received packet buffer
  * @param addr Source IP address
  * @return 1 if packet was consumed, 0 otherwise
  */
-static u8_t ping_recv_cb(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *addr)
-{
+static u8_t ping_recv_cb(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *addr) {
     LWIP_UNUSED_ARG(arg);
     LWIP_UNUSED_ARG(pcb);
 
     struct icmp_echo_hdr *iecho;
 
-    if ((p->len >= (sizeof(struct icmp_echo_hdr))) && 
-        pbuf_header(p, -(s16_t)PBUF_IP_HLEN) == 0) {
-        
-        iecho = (struct icmp_echo_hdr *)p->payload;
+    if ((p->len >= (sizeof(struct icmp_echo_hdr))) && pbuf_header(p, -(s16_t) PBUF_IP_HLEN) == 0) {
+        iecho = (struct icmp_echo_hdr *) p->payload;
 
         if ((iecho->type == ICMP_ER) && (iecho->id == 0xABCD)) {
-            printf("Ping-svar från %s: seq=%d tid=%ldms\n",
-                   ipaddr_ntoa(addr), iecho->seqno, 
+            printf("Ping-svar från %s: seq=%d tid=%ldms\n", ipaddr_ntoa(addr), iecho->seqno,
                    time_us_64() / 1000 - ping_start_time);
             ping_in_flight = false;
             pbuf_free(p);
             return 1;
         }
     }
-    
+
     pbuf_free(p);
     return 0;
 }
@@ -82,18 +78,18 @@ static void ping_send(void) {
     LWIP_ASSERT("ping_send: pbuf_alloc failed", p != NULL);
 
     if (p != NULL) {
-        struct icmp_echo_hdr *iecho = (struct icmp_echo_hdr *)p->payload;
+        struct icmp_echo_hdr *iecho = (struct icmp_echo_hdr *) p->payload;
 
         // **KORRIGERAT: Fyll i ICMP-huvudet manuellt.**
         // Fält för ICMP Echo Request (typ 8, kod 0)
-        iecho->type = ICMP_ECHO;     // Typ: 8 (Echo Request)
-        iecho->code = 0;             // Kod: 0
-        iecho->id = 0xABCD;          // Identifierare
+        iecho->type = ICMP_ECHO;       // Typ: 8 (Echo Request)
+        iecho->code = 0;               // Kod: 0
+        iecho->id = 0xABCD;            // Identifierare
         iecho->seqno = ++ping_seq_num; // Sekvensnummer
 
         // Lägg till lite dummy-data efter ICMP-huvudet
         for (int i = 0; i < PING_SIZE - sizeof(struct icmp_echo_hdr); i++) {
-            ((u8_t *)iecho)[sizeof(struct icmp_echo_hdr) + i] = (u8_t)i;
+            ((u8_t *) iecho)[sizeof(struct icmp_echo_hdr) + i] = (u8_t) i;
         }
 
         // Beräkna checksumma (checksumman måste vara noll innan beräkning)
@@ -116,8 +112,7 @@ static void ping_send(void) {
 }
 
 // --- Main-funktionen ---
-int main(void)
-{
+int main(void) {
     /* Initialize stdio and display version information */
     init_stdio_and_display_version_default("Pico W Network Ping Utility");
 
@@ -131,7 +126,8 @@ int main(void)
     cyw43_arch_enable_sta_mode();
 
     printf("Ansluter till WiFi \"%s\"...\n", WIFI_SSID);
-    if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000)) {
+    if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK,
+                                           30000)) {
         printf("Misslyckades med att ansluta till WiFi! Kontrollera SSID/Lösenord.\n");
         cyw43_arch_deinit();
         return 1;
@@ -144,7 +140,8 @@ int main(void)
         printf("Nätmask: %s\n", ipaddr_ntoa(&netif->netmask));
         printf("Gateway: %s\n", ipaddr_ntoa(&netif->gw));
     } else {
-        printf("Pico W:s nätverksgränssnitt är inte uppe eller länken är nere (DHCP misslyckades?).\n");
+        printf("Pico W:s nätverksgränssnitt är inte uppe eller länken är nere (DHCP "
+               "misslyckades?).\n");
     }
 
     ping_init();

@@ -1,7 +1,7 @@
 /**
  * mbedTLS Configuration - Project Specific Settings
  * Based on Raspberry Pi Pico examples
- * 
+ *
  * Copyright (c) 2024 Peter Westlund
  * Original Pico examples: Copyright (c) 2022 Raspberry Pi (Trading) Ltd.
  *

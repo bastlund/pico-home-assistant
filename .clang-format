@@ -1,0 +1,57 @@
+# clang-format configuration for Pico W Home Assistant project
+# Based on K&R style with some modern adjustments
+
+BasedOnStyle: LLVM
+
+# Basic formatting
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 100
+
+# Braces
+BreakBeforeBraces: Attach
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+
+# Spacing
+SpaceAfterCStyleCast: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpacesInConditionalStatement: false
+
+# Alignment
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignTrailingComments: true
+AlignOperands: true
+
+# Indentation
+IndentCaseLabels: true
+IndentPPDirectives: None
+ContinuationIndentWidth: 4
+
+# Function declarations
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Pointers and references
+PointerAlignment: Right
+DerivePointerAlignment: false
+
+# Comments
+ReflowComments: true
+
+# Include sorting
+SortIncludes: false
+
+# Keep embedded C patterns
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 2
+
+# Language specific
+Language: Cpp
+Standard: c++17

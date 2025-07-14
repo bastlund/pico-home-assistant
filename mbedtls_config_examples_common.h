@@ -1,7 +1,7 @@
 /**
  * mbedTLS Configuration - Common Settings
  * Based on Raspberry Pi Pico examples
- * 
+ *
  * Copyright (c) 2024 Peter Westlund
  * Original Pico examples: Copyright (c) 2022 Raspberry Pi (Trading) Ltd.
  *
@@ -16,7 +16,7 @@
 #define MBEDTLS_NO_PLATFORM_ENTROPY
 #define MBEDTLS_ENTROPY_HARDWARE_ALT
 
-#define MBEDTLS_SSL_OUT_CONTENT_LEN    2048
+#define MBEDTLS_SSL_OUT_CONTENT_LEN 2048
 
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 #define MBEDTLS_HAVE_TIME
