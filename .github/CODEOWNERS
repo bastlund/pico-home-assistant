@@ -1,0 +1,9 @@
+# Global rule - Peter Westlund owns everything
+* @bastlund
+
+# Specific protections for critical files
+CMakeLists.txt @bastlund
+*.c @bastlund
+*.h @bastlund
+LICENSE @bastlund
+README.md @bastlund
