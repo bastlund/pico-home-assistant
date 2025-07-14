@@ -60,6 +60,8 @@ pico_add_extra_outputs(pico_w_ping)
 pico_enable_stdio_usb(pico_w_ping 1)
 pico_enable_stdio_uart(pico_w_ping 0)
 
+# Note: pico-onewire library removed due to C++ incompatibility with C project
+
 # Sensor application
 add_executable(pico_w_sensor sensor.c version_display.c)
 target_include_directories(pico_w_sensor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
@@ -74,6 +76,29 @@ target_link_libraries(pico_w_sensor
 pico_add_extra_outputs(pico_w_sensor)
 pico_enable_stdio_usb(pico_w_sensor 1)
 pico_enable_stdio_uart(pico_w_sensor 0)
+
+# DS18B20 test application - using pure C implementation
+add_executable(pico_w_ds18b20_test ds18b20_test.c ds18b20.c version_display.c)
+target_include_directories(pico_w_ds18b20_test PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries(pico_w_ds18b20_test
+    pico_stdlib
+    pico_cyw43_arch_lwip_threadsafe_background
+    hardware_gpio
+)
+pico_add_extra_outputs(pico_w_ds18b20_test)
+pico_enable_stdio_usb(pico_w_ds18b20_test 1)
+pico_enable_stdio_uart(pico_w_ds18b20_test 0)
+
+# Add compile definitions for DS18B20 test
+target_compile_definitions(pico_w_ds18b20_test PRIVATE
+    PROJECT_VERSION_FULL="${PROJECT_VERSION_FULL}"
+    PROJECT_VERSION="${PROJECT_VERSION}"
+    PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+    PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+    PROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+    DEBUG_LEVEL=${DEBUG_LEVEL}
+    DS18B20_GPIO_PIN=${DS18B20_GPIO_PIN}
+)
 
 # Define the WiFi credentials
 if(NOT DEFINED WIFI_SSID)
@@ -97,6 +122,16 @@ endif()
 # Define the MQTT port (optional, defaults to 1883)
 if(NOT DEFINED MQTT_PORT)
     set(MQTT_PORT "1883")
+endif()
+
+# Define debug level (optional, defaults to 2)
+if(NOT DEFINED DEBUG_LEVEL)
+    set(DEBUG_LEVEL "2")
+endif()
+
+# Define DS18B20 GPIO pin (optional, defaults to 2)
+if(NOT DEFINED DS18B20_GPIO_PIN)
+    set(DS18B20_GPIO_PIN "2")
 endif()
 
 # Define the debug level (optional, defaults to 2)
