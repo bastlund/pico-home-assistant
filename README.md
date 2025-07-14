@@ -33,10 +33,12 @@ To get the latest stable version, clone the repository and checkout the release 
 ```bash
 git clone https://github.com/bastlund/pico-home-assistant.git
 cd pico-home-assistant
-git checkout v0.1.0
+git checkout v0.1.0  # Replace with latest version from releases page
 ```
 
 Alternatively, download the release directly from [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases/latest).
+
+**Current stable version:** See [releases page](https://github.com/bastlund/pico-home-assistant/releases) for the latest version.
 
 ### Development Version
 
