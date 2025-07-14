@@ -20,6 +20,7 @@
 #include "lwip/dns.h"
 #include "lwip/altcp_tls.h"
 #include <math.h> /* for fabs */
+#include "version_display.h"
 
 /* Configuration constants */
 
@@ -549,21 +550,8 @@ static void dns_found(const char *hostname, const ip_addr_t *ipaddr, void *arg) 
 }
 
 int main(void) {
-    stdio_init_all();
-    
-    /* Give stdio time to initialize */
-    sleep_ms(100);
-    
-    /* Display version information - use printf directly to ensure output */
-    printf("=== Pico W Home Assistant Sensor ===\n");
-    printf("Version: %s\n", PROJECT_VERSION_FULL);
-    printf("Base version: %s\n", PROJECT_VERSION);
-    printf("Build info: Major=%d, Minor=%d, Patch=%d\n", 
-           PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
-    printf("=====================================\n");
-    
-    /* Flush output to ensure it's displayed */
-    fflush(stdout);
+    /* Initialize stdio and display version information */
+    init_stdio_and_display_version_default("Pico W Home Assistant Sensor");
     
     INFO_printf("MQTT client starting\n");
 

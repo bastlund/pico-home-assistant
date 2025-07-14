@@ -8,9 +8,36 @@ This project contains three main applications for the Raspberry Pi Pico W, desig
 
 ## Release Information
 
-### Current Release: v0.1.1-alpha
+### Current Release: v0.1.2-alpha
 
-This is the first alpha release of the Pico Home Assistant project. It includes:
+**Code Architecture & Reliability Improvements**
+
+This release focuses on code quality, maintainability, and improved startup reliability:
+
+#### 🏗️ **Code Refactoring & Architecture**
+- ✅ **Shared Version Display Module** - Extracted common stdio initialization and version display functionality into reusable `version_display.c/h` components
+- ✅ **DRY Principle Implementation** - Eliminated code duplication across all three applications, reducing maintenance overhead
+- ✅ **Intelligent USB Initialization** - Replaced fixed delays with `stdio_usb_connected()` smart detection for faster, more reliable startup
+- ✅ **Timeout Protection** - Added 10-second timeout for headless operation when no USB connection is available
+- ✅ **Consistent User Experience** - All applications now have identical, professional version information display
+- ✅ **Improved Build System** - Updated CMakeLists.txt to properly link shared components across all executables
+
+#### 🔧 **Technical Improvements**
+- **Startup Performance**: Applications start immediately when USB is connected, instead of waiting fixed delays
+- **Code Maintainability**: Single source of truth for stdio/version handling reduces bugs and simplifies updates  
+- **Memory Efficiency**: Reduced code duplication saves flash memory across all three applications
+- **Developer Experience**: Cleaner main() functions focus on core application logic
+
+#### 📊 **Metrics**
+- **Code Reduction**: ~400+ characters of duplicated code eliminated
+- **Consistency**: 100% identical stdio initialization across all applications
+- **Reliability**: Smart USB detection with fallback timeout for production deployments
+
+**Note:** As an alpha release, this version is suitable for testing and development. APIs and configuration may change in future releases.
+
+### Previous Release: v0.1.1-alpha
+
+The first alpha release of the Pico Home Assistant project included:
 
 - ✅ **Complete MQTT sensor** with Home Assistant auto-discovery
 - ✅ **Temperature monitoring** via onboard ADC sensor  
@@ -33,7 +60,7 @@ To get the latest stable version, clone the repository and checkout the release 
 ```bash
 git clone https://github.com/bastlund/pico-home-assistant.git
 cd pico-home-assistant
-git checkout v0.1.1-alpha  # Replace with latest version from releases page
+git checkout v0.1.2-alpha  # Replace with latest version from releases page
 ```
 
 Alternatively, download the release directly from [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases/latest).

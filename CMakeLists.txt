@@ -4,7 +4,7 @@ include($ENV{PICO_SDK_PATH}/pico_sdk_init.cmake)
 # Project version
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 1)
-set(PROJECT_VERSION_PATCH 1)
+set(PROJECT_VERSION_PATCH 2)
 
 # Try to get version from git describe
 find_package(Git QUIET)
@@ -45,7 +45,7 @@ add_compile_definitions(
 )
 
 # Scan application - uses scan.c, not ping.c
-add_executable(pico_w_scan scan.c)
+add_executable(pico_w_scan scan.c version_display.c)
 target_include_directories(pico_w_scan PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(pico_w_scan pico_stdlib pico_cyw43_arch_lwip_threadsafe_background)
 pico_add_extra_outputs(pico_w_scan)
@@ -53,7 +53,7 @@ pico_enable_stdio_usb(pico_w_scan 1)
 pico_enable_stdio_uart(pico_w_scan 0)
 
 # Ping application
-add_executable(pico_w_ping ping.c)
+add_executable(pico_w_ping ping.c version_display.c)
 target_include_directories(pico_w_ping PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(pico_w_ping pico_stdlib pico_cyw43_arch_lwip_threadsafe_background)
 pico_add_extra_outputs(pico_w_ping)
@@ -61,7 +61,7 @@ pico_enable_stdio_usb(pico_w_ping 1)
 pico_enable_stdio_uart(pico_w_ping 0)
 
 # Sensor application
-add_executable(pico_w_sensor sensor.c)
+add_executable(pico_w_sensor sensor.c version_display.c)
 target_include_directories(pico_w_sensor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(pico_w_sensor
     pico_stdlib

@@ -17,6 +17,7 @@
 #include "lwip/netif.h"
 #include "lwip/dhcp.h"
 #include "lwip/raw.h"
+#include "version_display.h"
 
 /* Network configuration constants */
 #define PING_TARGET_IP_STR      "192.168.86.1"      /* Default ping target */
@@ -117,21 +118,8 @@ static void ping_send(void) {
 // --- Main-funktionen ---
 int main(void)
 {
-    stdio_init_all();
-
-    /* Give stdio time to initialize */
-    sleep_ms(100);
-
-    /* Display version information */
-    printf("=== Pico W Network Ping Utility ===\n");
-    printf("Version: %s\n", PROJECT_VERSION_FULL);
-    printf("Base version: %s\n", PROJECT_VERSION);
-    printf("Build info: Major=%d, Minor=%d, Patch=%d\n", 
-           PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
-    printf("====================================\n");
-    
-    /* Flush output to ensure it's displayed */
-    fflush(stdout);
+    /* Initialize stdio and display version information */
+    init_stdio_and_display_version_default("Pico W Network Ping Utility");
 
     printf("Startar WiFi-anslutning...\n");
 

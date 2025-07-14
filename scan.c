@@ -14,6 +14,7 @@
 #include "pico/cyw43_arch.h"
 #include "hardware/vreg.h"
 #include "hardware/clocks.h"
+#include "version_display.h"
 
 /**
  * Callback function for WiFi scan results
@@ -41,21 +42,8 @@ static int scan_result(void *env, const cyw43_ev_scan_result_t *result)
  */
 int main(void)
 {
-    stdio_init_all();
-
-    /* Give stdio time to initialize */
-    sleep_ms(100);
-
-    /* Display version information */
-    printf("=== Pico W WiFi Network Scanner ===\n");
-    printf("Version: %s\n", PROJECT_VERSION_FULL);
-    printf("Base version: %s\n", PROJECT_VERSION);
-    printf("Build info: Major=%d, Minor=%d, Patch=%d\n", 
-           PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
-    printf("====================================\n");
-    
-    /* Flush output to ensure it's displayed */
-    fflush(stdout);
+    /* Initialize stdio and display version information */
+    init_stdio_and_display_version_default("Pico W WiFi Network Scanner");
 
     if (cyw43_arch_init()) {
         printf("cyw43 failed to init\n");
