@@ -1,4 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
+
+# Enable ccache for faster builds
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
+endif()
+
 include($ENV{PICO_SDK_PATH}/pico_sdk_init.cmake)
 
 # Project version
@@ -62,13 +71,23 @@ pico_enable_stdio_uart(pico_w_ping 0)
 
 # Note: pico-onewire library removed due to C++ incompatibility with C project
 
+# DS18B20 static library
+add_library(ds18b20_lib STATIC ds18b20.c)
+target_include_directories(ds18b20_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries(ds18b20_lib
+    pico_stdlib
+    hardware_gpio
+    hardware_sync
+    pico_time
+)
+
 # Sensor application
-add_executable(pico_w_sensor sensor.c ds18b20.c version_display.c)
+add_executable(pico_w_sensor sensor.c version_display.c)
 target_include_directories(pico_w_sensor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(pico_w_sensor
     pico_stdlib
     hardware_adc
-    hardware_gpio
+    ds18b20_lib
     pico_cyw43_arch_lwip_threadsafe_background
     pico_lwip_mqtt
     pico_mbedtls
@@ -79,12 +98,12 @@ pico_enable_stdio_usb(pico_w_sensor 1)
 pico_enable_stdio_uart(pico_w_sensor 0)
 
 # DS18B20 test application - using pure C implementation
-add_executable(pico_w_ds18b20_test ds18b20_test.c ds18b20.c version_display.c)
+add_executable(pico_w_ds18b20_test ds18b20_test.c version_display.c)
 target_include_directories(pico_w_ds18b20_test PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(pico_w_ds18b20_test
     pico_stdlib
     pico_cyw43_arch_lwip_threadsafe_background
-    hardware_gpio
+    ds18b20_lib
 )
 pico_add_extra_outputs(pico_w_ds18b20_test)
 pico_enable_stdio_usb(pico_w_ds18b20_test 1)
