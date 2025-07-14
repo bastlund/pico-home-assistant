@@ -115,8 +115,17 @@ static void ping_send(void) {
 }
 
 // --- Main-funktionen ---
-int main() {
+int main(void)
+{
     stdio_init_all();
+
+    /* Display version information */
+    printf("=== Pico W Network Ping Utility ===\n");
+    printf("Version: %s\n", PROJECT_VERSION_FULL);
+    printf("Base version: %s\n", PROJECT_VERSION);
+    printf("Build info: Major=%d, Minor=%d, Patch=%d\n", 
+           PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
+    printf("====================================\n");
 
     printf("Startar WiFi-anslutning...\n");
 

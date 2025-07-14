@@ -43,6 +43,14 @@ int main(void)
 {
     stdio_init_all();
 
+    /* Display version information */
+    printf("=== Pico W WiFi Network Scanner ===\n");
+    printf("Version: %s\n", PROJECT_VERSION_FULL);
+    printf("Base version: %s\n", PROJECT_VERSION);
+    printf("Build info: Major=%d, Minor=%d, Patch=%d\n", 
+           PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
+    printf("====================================\n");
+
     if (cyw43_arch_init()) {
         printf("cyw43 failed to init\n");
         return 1;

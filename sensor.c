@@ -552,7 +552,16 @@ static void dns_found(const char *hostname, const ip_addr_t *ipaddr, void *arg) 
 
 int main(void) {
     stdio_init_all();
-    INFO_printf("mqtt client starting\n");
+    
+    /* Display version information */
+    INFO_printf("=== Pico W Home Assistant Sensor ===\n");
+    INFO_printf("Version: %s\n", PROJECT_VERSION_FULL);
+    INFO_printf("Base version: %s\n", PROJECT_VERSION);
+    INFO_printf("Build info: Major=%d, Minor=%d, Patch=%d\n", 
+               PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
+    INFO_printf("=====================================\n");
+    
+    INFO_printf("MQTT client starting\n");
 
     adc_init();
     adc_set_temp_sensor_enabled(true);
