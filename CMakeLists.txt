@@ -1,11 +1,25 @@
 cmake_minimum_required(VERSION 3.13)
 include($ENV{PICO_SDK_PATH}/pico_sdk_init.cmake)
 
-project(pico_w C CXX ASM)
+# Project version
+set(PROJECT_VERSION_MAJOR 0)
+set(PROJECT_VERSION_MINOR 1)
+set(PROJECT_VERSION_PATCH 0)
+set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+
+project(pico_w VERSION ${PROJECT_VERSION} LANGUAGES C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
+
+# Add version information as compile definitions
+add_compile_definitions(
+    PROJECT_VERSION="${PROJECT_VERSION}"
+    PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+    PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+    PROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+)
 
 # Scan application
 add_executable(pico_w_scan ping.c)

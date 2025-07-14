@@ -6,6 +6,48 @@ Home Assistant integration using Raspberry Pi Pico W for IoT sensor applications
 
 This project contains three main applications for the Raspberry Pi Pico W, designed to work with WiFi networks and MQTT brokers.
 
+## Release Information
+
+### Current Release: v0.1.0 (Alpha)
+
+This is the first alpha release of the Pico Home Assistant project. It includes:
+
+- ✅ **Complete MQTT sensor** with Home Assistant auto-discovery
+- ✅ **Temperature monitoring** via onboard ADC sensor  
+- ✅ **WiFi connectivity** with automatic reconnection
+- ✅ **Network diagnostic tools** (ping and WiFi scan utilities)
+- ✅ **Configurable debug levels** (0-4) for development and production
+- ✅ **Professional licensing** (BSD-3-Clause) with proper attribution
+- ✅ **Comprehensive documentation** and build instructions
+
+**Note:** As an alpha release, this version is suitable for testing and development. APIs and configuration may change in future releases.
+
+For release notes and download links, visit [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases).
+
+## Quick Start
+
+### Get the Latest Stable Release
+
+To get the latest stable version, clone the repository and checkout the release tag:
+
+```bash
+git clone https://github.com/bastlund/pico-home-assistant.git
+cd pico-home-assistant
+git checkout v0.1.0
+```
+
+Alternatively, download the release directly from [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases/latest).
+
+### Development Version
+
+For the latest development code (may be unstable):
+
+```bash
+git clone https://github.com/bastlund/pico-home-assistant.git
+cd pico-home-assistant
+# Uses main branch by default
+```
+
 ## Build Targets
 
 ### 1. `pico_w_scan` 
