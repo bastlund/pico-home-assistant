@@ -1,6 +1,7 @@
 /**
  * DS18B20 Temperature Sensor Monitor Program
- * Monitors the DS18B20 sensor connected to GPIO 2 with diagnostics
+ * Monitors the DS18B20 sensor with diagnostics
+ * GPIO pin configurable via CMake DS18B20_GPIO_PIN (default: 2)
  * Pure C implementation for maximum compatibility
  */
 
@@ -10,7 +11,11 @@
 #include "pico/cyw43_arch.h"
 #include "ds18b20.h"
 
-#define DS18B20_GPIO 2 // GPIO pin for DS18B20 data line
+// DS18B20 GPIO pin - configurable via CMake DS18B20_GPIO_PIN
+#ifndef DS18B20_GPIO_PIN
+#define DS18B20_GPIO_PIN 2 // Default fallback
+#endif
+#define DS18B20_GPIO DS18B20_GPIO_PIN
 
 int main() {
     // Initialize all
