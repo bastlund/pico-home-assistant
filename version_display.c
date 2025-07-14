@@ -11,6 +11,14 @@
 #include <stdio.h>
 #include <string.h>
 
+/**
+ * @file version_display.c
+ * @brief This module contains functions to set up standard I/O for the device and diplay
+ * * version information.
+ * 
+ * @param app_name Name of the application (e.g. "Pico W Home Assistant Sensor")
+ * @param timeout_ms Timeout in milliseconds to wait for USB connection
+ */
 void init_stdio_and_display_version(const char* app_name, uint32_t timeout_ms) {
     // Initialize stdio
     stdio_init_all();
