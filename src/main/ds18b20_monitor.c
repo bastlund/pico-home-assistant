@@ -1,6 +1,6 @@
 /**
- * DS18B20 Temperature Sensor Test Program
- * Tests the DS18B20 sensor connected to GPIO 2
+ * DS18B20 Temperature Sensor Monitor Program
+ * Monitors the DS18B20 sensor connected to GPIO 2 with diagnostics
  * Pure C implementation for maximum compatibility
  */
 

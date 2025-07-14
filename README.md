@@ -20,7 +20,7 @@ This release introduces high-precision external temperature sensing capabilities
 - ✅ **Home Assistant Integration** - Separate sensor entities for onboard and external temperature readings
 - ✅ **Robust Error Handling** - Graceful operation when external sensor is disconnected or fails
 - ✅ **Precision Timing** - Interrupt-safe communication using busy_wait for reliable 1-Wire protocol
-- ✅ **Development Tools** - Standalone DS18B20 test application for sensor validation
+- ✅ **Development Tools** - Standalone DS18B20 monitoring application for sensor validation and diagnostics
 
 #### 🔧 **Technical Improvements**
 - **Temperature Accuracy**: DS18B20 provides ±0.5°C accuracy vs ±2°C for onboard sensor
@@ -30,7 +30,7 @@ This release introduces high-precision external temperature sensing capabilities
 
 #### 📊 **Applications**
 - **pico_w_sensor**: Now supports dual temperature sensors with separate MQTT topics
-- **pico_w_ds18b20_test**: New standalone application for DS18B20 testing and validation
+- **pico_w_ds18b20_monitor**: New standalone application for DS18B20 monitoring and diagnostics
 - **Hardware Support**: DS18B20 wiring guide with 4.7kΩ pull-up resistor requirements
 
 **Note:** As an alpha release, this version is suitable for testing and development. APIs and configuration may change in future releases.
@@ -126,12 +126,13 @@ Complete Home Assistant MQTT sensor implementation featuring:
 - **Unique Device ID** - Uses Pico's unique board ID for device identification
 - **Error Handling** - Graceful operation when external sensor is not connected
 
-### 4. `pico_w_ds18b20_test`
-Standalone DS18B20 temperature sensor test application for development and debugging:
-- **Real-time Temperature Display** - Continuous temperature readings from DS18B20 sensor
-- **Error Diagnostics** - Detailed error reporting for sensor communication issues
-- **LED Status Indicator** - Visual feedback of sensor operation status
-- **Development Tool** - Useful for testing DS18B20 wiring and sensor functionality before integration
+### 4. `pico_w_ds18b20_monitor`
+Standalone DS18B20 temperature sensor monitoring application for development and diagnostics:
+- **Continuous Temperature Monitoring** - Real-time temperature readings with timestamps
+- **Comprehensive Diagnostics** - Detailed error reporting and connection troubleshooting
+- **Visual Status Feedback** - LED indicator shows sensor operation and connectivity status
+- **Temperature Validation** - Range checking and sensor health monitoring
+- **Development Tool** - Perfect for validating DS18B20 wiring and functionality before integration
 
 ## Configuration
 
@@ -163,7 +164,7 @@ All applications require configuration through CMake variables. These can be set
 #### Temperature Settings
 - `TEMPERATURE_UNITS` - Temperature unit, 'C' or 'F' (default: 'C')
 
-#### DS18B20 External Sensor Configuration (for pico_w_sensor and pico_w_ds18b20_test)
+#### DS18B20 External Sensor Configuration (for pico_w_sensor and pico_w_ds18b20_monitor)
 - `DS18B20_GPIO_PIN` - GPIO pin number for DS18B20 1-Wire bus (default: 2)
 - `TEMPERATURE_SENSOR` - Set to "ds18b20" to enable external sensor support (optional)
 
@@ -244,7 +245,7 @@ For external temperature sensing, connect the DS18B20 as follows:
 1. Install the CMake Tools extension in VS Code
 2. Configure your `cmake-tools-kits.json` with the required variables
 3. Select the ARM GCC kit in VS Code
-4. Choose your desired build target (pico_w_scan, pico_w_ping, pico_w_sensor, or pico_w_ds18b20_test)
+4. Choose your desired build target (pico_w_scan, pico_w_ping, pico_w_sensor, or pico_w_ds18b20_monitor)
 5. Build using Ctrl+Shift+P → "CMake: Build"
 
 ### Manual CMake Build

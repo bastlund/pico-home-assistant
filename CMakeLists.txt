@@ -107,24 +107,24 @@ pico_add_extra_outputs(pico_w_sensor)
 pico_enable_stdio_usb(pico_w_sensor 1)
 pico_enable_stdio_uart(pico_w_sensor 0)
 
-# DS18B20 test application - using pure C implementation
-add_executable(pico_w_ds18b20_test tests/ds18b20_test.c src/utils/version_display.c)
-target_include_directories(pico_w_ds18b20_test PRIVATE 
+# DS18B20 monitor application - temperature monitoring with diagnostics
+add_executable(pico_w_ds18b20_monitor src/main/ds18b20_monitor.c src/utils/version_display.c)
+target_include_directories(pico_w_ds18b20_monitor PRIVATE 
     ${CMAKE_CURRENT_LIST_DIR}/src/utils 
     ${CMAKE_CURRENT_LIST_DIR}/src/drivers
     ${CMAKE_CURRENT_LIST_DIR}/src/config
 )
-target_link_libraries(pico_w_ds18b20_test
+target_link_libraries(pico_w_ds18b20_monitor
     pico_stdlib
     pico_cyw43_arch_lwip_threadsafe_background
     ds18b20_lib
 )
-pico_add_extra_outputs(pico_w_ds18b20_test)
-pico_enable_stdio_usb(pico_w_ds18b20_test 1)
-pico_enable_stdio_uart(pico_w_ds18b20_test 0)
+pico_add_extra_outputs(pico_w_ds18b20_monitor)
+pico_enable_stdio_usb(pico_w_ds18b20_monitor 1)
+pico_enable_stdio_uart(pico_w_ds18b20_monitor 0)
 
-# Add compile definitions for DS18B20 test
-target_compile_definitions(pico_w_ds18b20_test PRIVATE
+# Add compile definitions for DS18B20 monitor
+target_compile_definitions(pico_w_ds18b20_monitor PRIVATE
     PROJECT_VERSION_FULL="${PROJECT_VERSION_FULL}"
     PROJECT_VERSION="${PROJECT_VERSION}"
     PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
