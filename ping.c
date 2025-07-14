@@ -7,6 +7,8 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+/* Standard library includes */
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
@@ -16,35 +18,50 @@
 #include "lwip/dhcp.h"
 #include "lwip/raw.h"
 
-#define PING_TARGET_IP_STR "192.168.86.1" 
-#define PING_TIMEOUT_MS 5000            
-#define PING_INTERVAL_MS 10000          
+/* Network configuration constants */
+#define PING_TARGET_IP_STR      "192.168.86.1"      /* Default ping target */
+#define PING_TIMEOUT_MS         5000                /* Ping timeout in milliseconds */
+#define PING_INTERVAL_MS        10000               /* Interval between pings */
+#define PING_SIZE               (sizeof(struct icmp_echo_hdr) + 32)  /* Ping packet size */
 
-#define PING_SIZE (sizeof(struct icmp_echo_hdr) + 32) 
-
+/* Global variables */
 static uint16_t ping_seq_num = 0;
 static uint32_t ping_start_time = 0;
 static struct raw_pcb *ping_pcb = NULL;
 static ip_addr_t ping_target_ip;
-static bool ping_in_flight = false; 
+static bool ping_in_flight = false;
 
-static u8_t ping_recv_cb(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *addr) {
+/**
+ * Callback function for receiving ping responses
+ * 
+ * @param arg User argument (unused)
+ * @param pcb Protocol Control Block
+ * @param p Received packet buffer
+ * @param addr Source IP address
+ * @return 1 if packet was consumed, 0 otherwise
+ */
+static u8_t ping_recv_cb(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *addr)
+{
     LWIP_UNUSED_ARG(arg);
     LWIP_UNUSED_ARG(pcb);
 
     struct icmp_echo_hdr *iecho;
 
-    if ((p->len >= (sizeof(struct icmp_echo_hdr))) && pbuf_header(p, -(s16_t)PBUF_IP_HLEN) == 0) {
+    if ((p->len >= (sizeof(struct icmp_echo_hdr))) && 
+        pbuf_header(p, -(s16_t)PBUF_IP_HLEN) == 0) {
+        
         iecho = (struct icmp_echo_hdr *)p->payload;
 
         if ((iecho->type == ICMP_ER) && (iecho->id == 0xABCD)) {
             printf("Ping-svar från %s: seq=%d tid=%ldms\n",
-                   ipaddr_ntoa(addr), iecho->seqno, time_us_64() / 1000 - ping_start_time);
-            ping_in_flight = false; 
+                   ipaddr_ntoa(addr), iecho->seqno, 
+                   time_us_64() / 1000 - ping_start_time);
+            ping_in_flight = false;
             pbuf_free(p);
             return 1;
         }
     }
+    
     pbuf_free(p);
     return 0;
 }

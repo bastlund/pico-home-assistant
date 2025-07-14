@@ -7,23 +7,40 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+/* Standard library includes */
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 #include "hardware/vreg.h"
 #include "hardware/clocks.h"
 
-static int scan_result(void *env, const cyw43_ev_scan_result_t *result) {
+/**
+ * Callback function for WiFi scan results
+ * 
+ * @param env Environment pointer (unused)
+ * @param result Scan result structure
+ * @return 0 to continue scanning
+ */
+static int scan_result(void *env, const cyw43_ev_scan_result_t *result)
+{
     if (result) {
         printf("ssid: %-32s rssi: %4d chan: %3d mac: %02x:%02x:%02x:%02x:%02x:%02x sec: %u\n",
             result->ssid, result->rssi, result->channel,
-            result->bssid[0], result->bssid[1], result->bssid[2], result->bssid[3], result->bssid[4], result->bssid[5],
+            result->bssid[0], result->bssid[1], result->bssid[2], 
+            result->bssid[3], result->bssid[4], result->bssid[5],
             result->auth_mode);
     }
     return 0;
 }
 
-int main() {
+/**
+ * Main function - WiFi scanner application
+ * 
+ * @return Exit status code
+ */
+int main(void)
+{
     stdio_init_all();
 
     if (cyw43_arch_init()) {

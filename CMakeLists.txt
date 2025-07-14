@@ -44,8 +44,8 @@ add_compile_definitions(
     PROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
 
-# Scan application
-add_executable(pico_w_scan ping.c)
+# Scan application - uses scan.c, not ping.c
+add_executable(pico_w_scan scan.c)
 target_include_directories(pico_w_scan PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(pico_w_scan pico_stdlib pico_cyw43_arch_lwip_threadsafe_background)
 pico_add_extra_outputs(pico_w_scan)
@@ -60,7 +60,7 @@ pico_add_extra_outputs(pico_w_ping)
 pico_enable_stdio_usb(pico_w_ping 1)
 pico_enable_stdio_uart(pico_w_ping 0)
 
-# PingSensor application
+# Sensor application
 add_executable(pico_w_sensor sensor.c)
 target_include_directories(pico_w_sensor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(pico_w_sensor
@@ -86,12 +86,12 @@ endif()
 
 # Define the IP address to ping
 if(NOT DEFINED PING_TARGET_IP_STR)
-    message(FATAL_ERROR "IP Adress fpr ping app is missing: PING_TARGET_IP_STR is not defined. Please define it via -DPING_IP_ADDRESSPING_TARGET_IP_STR=\"YourIPAdresstoPing\" when running cmake, or set it in CMakeLists.txt.")
+    message(FATAL_ERROR "IP address for ping app is missing: PING_TARGET_IP_STR is not defined. Please define it via -DPING_TARGET_IP_STR=\"YourIPAddressToPing\" when running cmake, or set it in CMakeLists.txt.")
 endif()
 
 # Define the MQTT server
 if(NOT DEFINED MQTT_SERVER)
-    message(FATAL_ERROR "MQTT Broker IP Adress is missing: MQTT_SERVER is not defined. Please define it via -DMQTT_SERVER=\"YourMQTTBrokerIPAdress\" when running cmake, or set it in CMakeLists.txt.")
+    message(FATAL_ERROR "MQTT Broker IP address is missing: MQTT_SERVER is not defined. Please define it via -DMQTT_SERVER=\"YourMQTTBrokerIPAddress\" when running cmake, or set it in CMakeLists.txt.")
 endif()
 
 # Define the MQTT port (optional, defaults to 1883)

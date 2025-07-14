@@ -7,6 +7,8 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+/* Standard library includes */
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 #include "pico/unique_id.h"
@@ -14,17 +16,19 @@
 #include "hardware/irq.h"
 #include "hardware/adc.h"
 #include "lwip/apps/mqtt.h"
-#include "lwip/apps/mqtt_priv.h" // needed to set hostname
+#include "lwip/apps/mqtt_priv.h" /* needed to set hostname */
 #include "lwip/dns.h"
 #include "lwip/altcp_tls.h"
-#include <math.h> // for fabs
+#include <math.h> /* for fabs */
 
-// Temperature
+/* Configuration constants */
+
+/* Temperature measurement units */
 #ifndef TEMPERATURE_UNITS
-#define TEMPERATURE_UNITS 'C' // Set to 'F' for Fahrenheit
+#define TEMPERATURE_UNITS 'C' /* Set to 'F' for Fahrenheit */
 #endif
 
-// Home Assistant MQTT Discovery
+/* Home Assistant MQTT Discovery configuration */
 #ifndef HA_DISCOVERY_PREFIX
 #define HA_DISCOVERY_PREFIX "homeassistant"
 #endif
@@ -41,11 +45,12 @@
 #define HA_DEVICE_MANUFACTURER "Raspberry Pi Foundation"
 #endif
 
+/* MQTT server configuration - required */
 #ifndef MQTT_SERVER
-#error Need to define MQTT_SERVER
+#error "MQTT_SERVER must be defined"
 #endif
 
-// MQTT port configuration
+/* MQTT port configuration */
 #ifndef MQTT_PORT
 #define MQTT_PORT 1883
 #endif
@@ -82,19 +87,20 @@ typedef struct {
     absolute_time_t discovery_send_time;  // When to send discovery
 } MQTT_CLIENT_DATA_T;
 
-// Debug level configuration
-// 0 = No debug output (ERRORS only)
-// 1 = ERROR + WARN
-// 2 = ERROR + WARN + INFO  
-// 3 = ERROR + WARN + INFO + DEBUG
-// 4 = ERROR + WARN + INFO + DEBUG + VERBOSE
+/* Debug level configuration
+ * 0 = No debug output (ERRORS only)
+ * 1 = ERROR + WARN
+ * 2 = ERROR + WARN + INFO  
+ * 3 = ERROR + WARN + INFO + DEBUG
+ * 4 = ERROR + WARN + INFO + DEBUG + VERBOSE
+ */
 #ifndef DEBUG_LEVEL
-#define DEBUG_LEVEL 2  // Default to INFO level
+#define DEBUG_LEVEL 2  /* Default to INFO level */
 #endif
 
-// Debug macros based on debug level
+/* Debug macros based on debug level */
 #ifndef ERROR_printf
-#define ERROR_printf printf  // Always enabled
+#define ERROR_printf printf  /* Always enabled */
 #endif
 
 #ifndef WARN_printf
@@ -129,24 +135,23 @@ typedef struct {
 #endif
 #endif
 
-// how often to measure our temperature
-#define TEMP_WORKER_TIME_S 10
+/* Timing constants */
+#define TEMP_WORKER_TIME_S      10  /* Temperature measurement interval in seconds */
+#define MQTT_KEEP_ALIVE_S       30  /* MQTT keep-alive interval - reduced for better connection detection */
 
-// keep alive in seconds - reduced for better detection of connection issues
-#define MQTT_KEEP_ALIVE_S 30
+/* MQTT QoS settings
+ * QoS 0: At most once delivery
+ * QoS 1: At least once delivery  
+ * QoS 2: Exactly once delivery
+ */
+#define MQTT_SUBSCRIBE_QOS      1
+#define MQTT_PUBLISH_QOS        1
+#define MQTT_PUBLISH_RETAIN     0
 
-// qos passed to mqtt_subscribe
-// At most once (QoS 0)
-// At least once (QoS 1)
-// Exactly once (QoS 2)
-#define MQTT_SUBSCRIBE_QOS 1
-#define MQTT_PUBLISH_QOS 1
-#define MQTT_PUBLISH_RETAIN 0
-
-// topic used for last will and testament
-#define MQTT_WILL_TOPIC "/online"
-#define MQTT_WILL_MSG "0"
-#define MQTT_WILL_QOS 1
+/* Last Will and Testament configuration */
+#define MQTT_WILL_TOPIC         "/online"
+#define MQTT_WILL_MSG           "0"
+#define MQTT_WILL_QOS           1
 
 #ifndef MQTT_DEVICE_NAME
 #define MQTT_DEVICE_NAME "pico"
