@@ -1,6 +1,9 @@
 # Prerequisites
 build
 
+# IDE/Editor settings
+.vscode/
+
 *.d
 
 # Compiled Object files
