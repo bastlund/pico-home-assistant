@@ -8,7 +8,7 @@ This project contains three main applications for the Raspberry Pi Pico W, desig
 
 ## Release Information
 
-### Current Release: v0.1.0 (Alpha)
+### Current Release: v0.1.1-alpha
 
 This is the first alpha release of the Pico Home Assistant project. It includes:
 
@@ -33,7 +33,7 @@ To get the latest stable version, clone the repository and checkout the release 
 ```bash
 git clone https://github.com/bastlund/pico-home-assistant.git
 cd pico-home-assistant
-git checkout v0.1.0  # Replace with latest version from releases page
+git checkout v0.1.1-alpha  # Replace with latest version from releases page
 ```
 
 Alternatively, download the release directly from [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases/latest).
