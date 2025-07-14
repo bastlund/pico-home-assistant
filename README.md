@@ -8,11 +8,38 @@ This project contains four main applications for the Raspberry Pi Pico W, design
 
 ## Release Information
 
-### Current Release: v0.1.2-alpha
+### Current Release: v0.1.3-alpha
+
+**DS18B20 Digital Temperature Sensor Integration**
+
+This release introduces high-precision external temperature sensing capabilities and dual sensor monitoring:
+
+#### 🌡️ **DS18B20 Temperature Sensor Support**
+- ✅ **Pure C DS18B20 Driver** - Custom-built 1-Wire protocol implementation optimized for Pico W
+- ✅ **Dual Temperature Monitoring** - Simultaneous monitoring of onboard ADC and external DS18B20 sensors
+- ✅ **Home Assistant Integration** - Separate sensor entities for onboard and external temperature readings
+- ✅ **Robust Error Handling** - Graceful operation when external sensor is disconnected or fails
+- ✅ **Precision Timing** - Interrupt-safe communication using busy_wait for reliable 1-Wire protocol
+- ✅ **Development Tools** - Standalone DS18B20 test application for sensor validation
+
+#### 🔧 **Technical Improvements**
+- **Temperature Accuracy**: DS18B20 provides ±0.5°C accuracy vs ±2°C for onboard sensor
+- **Panic Resolution**: Fixed "sleep in exception handler" errors in sensor communication
+- **MQTT Discovery**: Enhanced Home Assistant auto-discovery for dual sensor setup
+- **Documentation**: Complete hardware wiring instructions and configuration examples
+
+#### 📊 **Applications**
+- **pico_w_sensor**: Now supports dual temperature sensors with separate MQTT topics
+- **pico_w_ds18b20_test**: New standalone application for DS18B20 testing and validation
+- **Hardware Support**: DS18B20 wiring guide with 4.7kΩ pull-up resistor requirements
+
+**Note:** As an alpha release, this version is suitable for testing and development. APIs and configuration may change in future releases.
+
+### Previous Release: v0.1.2-alpha
 
 **Code Architecture & Reliability Improvements**
 
-This release focuses on code quality, maintainability, and improved startup reliability:
+This release focused on code quality, maintainability, and improved startup reliability:
 
 #### 🏗️ **Code Refactoring & Architecture**
 - ✅ **Shared Version Display Module** - Extracted common stdio initialization and version display functionality into reusable `version_display.c/h` components
@@ -60,7 +87,7 @@ To get the latest stable version, clone the repository and checkout the release 
 ```bash
 git clone https://github.com/bastlund/pico-home-assistant.git
 cd pico-home-assistant
-git checkout v0.1.2-alpha  # Replace with latest version from releases page
+git checkout v0.1.3-alpha  # Replace with latest version from releases page
 ```
 
 Alternatively, download the release directly from [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases/latest).

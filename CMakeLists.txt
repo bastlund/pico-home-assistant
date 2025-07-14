@@ -4,7 +4,7 @@ include($ENV{PICO_SDK_PATH}/pico_sdk_init.cmake)
 # Project version
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 1)
-set(PROJECT_VERSION_PATCH 2)
+set(PROJECT_VERSION_PATCH 3)
 
 # Try to get version from git describe
 find_package(Git QUIET)
