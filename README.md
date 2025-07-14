@@ -4,7 +4,7 @@ Home Assistant integration using Raspberry Pi Pico W for IoT sensor applications
 
 ## Overview
 
-This project contains three main applications for the Raspberry Pi Pico W, designed to work with WiFi networks and MQTT brokers.
+This project contains four main applications for the Raspberry Pi Pico W, designed to work with WiFi networks and MQTT brokers.
 
 ## Release Information
 
@@ -87,13 +87,24 @@ Network connectivity tester that performs ICMP ping operations to verify network
 
 ### 3. `pico_w_sensor` 
 Complete Home Assistant MQTT sensor implementation featuring:
-- **Automatic MQTT Discovery** - Registers itself in Home Assistant automatically
-- **Temperature Monitoring** - Reads onboard temperature sensor and reports in Celsius/Fahrenheit
-- **Real-time Updates** - Publishes temperature changes with configurable intervals
+- **Automatic MQTT Discovery** - Registers dual temperature sensors in Home Assistant automatically
+- **Dual Temperature Monitoring** - Reads both onboard ADC sensor and external DS18B20 digital sensor
+- **Separate Sensor Entities** - Creates two distinct temperature sensors in Home Assistant:
+  - **Pico Onboard Temperature** - Internal ADC-based temperature sensor
+  - **Pico External Temperature** - High-precision DS18B20 digital sensor (GPIO 2)
+- **Real-time Updates** - Publishes temperature changes with configurable intervals and thresholds
 - **Availability Tracking** - Reports online/offline status with Last Will and Testament
 - **LED Control** - Remotely controllable onboard LED via MQTT commands
 - **Robust Connectivity** - Automatic WiFi and MQTT reconnection handling
 - **Unique Device ID** - Uses Pico's unique board ID for device identification
+- **Error Handling** - Graceful operation when external sensor is not connected
+
+### 4. `pico_w_ds18b20_test`
+Standalone DS18B20 temperature sensor test application for development and debugging:
+- **Real-time Temperature Display** - Continuous temperature readings from DS18B20 sensor
+- **Error Diagnostics** - Detailed error reporting for sensor communication issues
+- **LED Status Indicator** - Visual feedback of sensor operation status
+- **Development Tool** - Useful for testing DS18B20 wiring and sensor functionality before integration
 
 ## Configuration
 
@@ -124,6 +135,12 @@ All applications require configuration through CMake variables. These can be set
 
 #### Temperature Settings
 - `TEMPERATURE_UNITS` - Temperature unit, 'C' or 'F' (default: 'C')
+
+#### DS18B20 External Sensor Configuration (for pico_w_sensor and pico_w_ds18b20_test)
+- `DS18B20_GPIO_PIN` - GPIO pin number for DS18B20 1-Wire bus (default: 2)
+- `TEMPERATURE_SENSOR` - Set to "ds18b20" to enable external sensor support (optional)
+
+**Note**: DS18B20 sensor requires a 4.7kΩ pull-up resistor between the data line and 3.3V. The sensor operates on the 1-Wire protocol and provides high-precision temperature measurements (±0.5°C accuracy).
 
 #### MQTT Device Settings
 - `MQTT_DEVICE_NAME` - Base name for MQTT client ID (default: "pico")
@@ -161,7 +178,9 @@ All applications require configuration through CMake variables. These can be set
     "MQTT_PORT": "1883",
     "MQTT_USERNAME": "mqtt_user",
     "MQTT_PASSWORD": "mqtt_password",
-    "DEBUG_LEVEL": "2"
+    "DEBUG_LEVEL": "2",
+    "TEMPERATURE_SENSOR": "ds18b20",
+    "DS18B20_GPIO_PIN": "2"
   },
   "isTrusted": true
 }
@@ -169,12 +188,27 @@ All applications require configuration through CMake variables. These can be set
 
 ## Requirements
 
+### Hardware
 - Raspberry Pi Pico W
+- DS18B20 temperature sensor (optional, for external temperature monitoring)
+- 4.7kΩ pull-up resistor (required for DS18B20 operation)
+- Breadboard and jumper wires for sensor connections
+
+### Software
 - Pico SDK (latest version recommended)
 - Home Assistant with MQTT broker (for sensor application)
 - CMake 3.13 or later
 - ARM GCC toolchain (arm-none-eabi-gcc)
 - VS Code with CMake Tools extension (recommended)
+
+### DS18B20 Wiring
+
+For external temperature sensing, connect the DS18B20 as follows:
+- **VDD (Pin 3)** → Pico 3.3V (Pin 36)
+- **GND (Pin 1)** → Pico GND (Pin 38)  
+- **DQ (Pin 2)** → Pico GPIO 2 (Pin 4) + 4.7kΩ pull-up to 3.3V
+
+**Note**: The pull-up resistor is essential for reliable 1-Wire communication.
 
 ## Building
 
@@ -183,7 +217,7 @@ All applications require configuration through CMake variables. These can be set
 1. Install the CMake Tools extension in VS Code
 2. Configure your `cmake-tools-kits.json` with the required variables
 3. Select the ARM GCC kit in VS Code
-4. Choose your desired build target (pico_w_scan, pico_w_ping, or pico_w_sensor)
+4. Choose your desired build target (pico_w_scan, pico_w_ping, pico_w_sensor, or pico_w_ds18b20_test)
 5. Build using Ctrl+Shift+P → "CMake: Build"
 
 ### Manual CMake Build
@@ -200,7 +234,9 @@ cmake .. \
   -DMQTT_USERNAME="mqtt_user" \
   -DMQTT_PASSWORD="mqtt_password" \
   -DPING_TARGET_IP_STR="192.168.1.1" \
-  -DDEBUG_LEVEL=2
+  -DDEBUG_LEVEL=2 \
+  -DTEMPERATURE_SENSOR="ds18b20" \
+  -DDS18B20_GPIO_PIN="2"
 make -j4
 ```
 
