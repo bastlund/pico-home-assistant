@@ -93,10 +93,8 @@ typedef struct {
  * 2 = ERROR + WARN + INFO  
  * 3 = ERROR + WARN + INFO + DEBUG
  * 4 = ERROR + WARN + INFO + DEBUG + VERBOSE
+ * Note: DEBUG_LEVEL is now defined via CMake build system
  */
-#ifndef DEBUG_LEVEL
-#define DEBUG_LEVEL 2  /* Default to INFO level */
-#endif
 
 /* Debug macros based on debug level */
 #ifndef ERROR_printf
@@ -553,13 +551,19 @@ static void dns_found(const char *hostname, const ip_addr_t *ipaddr, void *arg) 
 int main(void) {
     stdio_init_all();
     
-    /* Display version information */
-    INFO_printf("=== Pico W Home Assistant Sensor ===\n");
-    INFO_printf("Version: %s\n", PROJECT_VERSION_FULL);
-    INFO_printf("Base version: %s\n", PROJECT_VERSION);
-    INFO_printf("Build info: Major=%d, Minor=%d, Patch=%d\n", 
-               PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
-    INFO_printf("=====================================\n");
+    /* Give stdio time to initialize */
+    sleep_ms(100);
+    
+    /* Display version information - use printf directly to ensure output */
+    printf("=== Pico W Home Assistant Sensor ===\n");
+    printf("Version: %s\n", PROJECT_VERSION_FULL);
+    printf("Base version: %s\n", PROJECT_VERSION);
+    printf("Build info: Major=%d, Minor=%d, Patch=%d\n", 
+           PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
+    printf("=====================================\n");
+    
+    /* Flush output to ensure it's displayed */
+    fflush(stdout);
     
     INFO_printf("MQTT client starting\n");
 

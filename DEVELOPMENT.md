@@ -55,3 +55,36 @@ We use GitHub Flow with release branches for this project.
 - `main` branch requires Pull Request reviews
 - No direct commits to `main`
 - All tests must pass before merge
+
+## Debug Configuration
+
+### Setting Debug Levels
+
+For development, you can adjust debug output verbosity:
+
+**Via cmake-tools-kits.json (VS Code users):**
+```json
+{
+  "cmakeSettings": {
+    "DEBUG_LEVEL": "3"
+  }
+}
+```
+
+**Via CMake command line:**
+```bash
+cmake -DDEBUG_LEVEL=3 ..
+```
+
+### Debug Levels
+- `0` - Production: Errors only
+- `1` - Warnings: Errors + Warnings  
+- `2` - Info: Errors + Warnings + Info (default)
+- `3` - Debug: Errors + Warnings + Info + Debug
+- `4` - Verbose: All messages including detailed traces
+
+### Development Recommendations
+- Use `DEBUG_LEVEL=3` for active development
+- Use `DEBUG_LEVEL=4` for troubleshooting network/MQTT issues
+- Use `DEBUG_LEVEL=0` for production builds
+- Use `DEBUG_LEVEL=2` for general testing (default)

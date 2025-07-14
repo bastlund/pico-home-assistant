@@ -99,6 +99,11 @@ if(NOT DEFINED MQTT_PORT)
     set(MQTT_PORT "1883")
 endif()
 
+# Define the debug level (optional, defaults to 2)
+if(NOT DEFINED DEBUG_LEVEL)
+    set(DEBUG_LEVEL "2")
+endif()
+
 add_compile_definitions(
     ${PROJECT_NAME}
     WIFI_SSID="${WIFI_SSID}"
@@ -106,6 +111,7 @@ add_compile_definitions(
     PING_TARGET_IP_STR="${PING_TARGET_IP_STR}"
     MQTT_SERVER="${MQTT_SERVER}"
     MQTT_PORT=${MQTT_PORT}
+    DEBUG_LEVEL=${DEBUG_LEVEL}
     $<$<BOOL:${MQTT_USERNAME}>:MQTT_USERNAME="${MQTT_USERNAME}">
     $<$<BOOL:${MQTT_PASSWORD}>:MQTT_PASSWORD="${MQTT_PASSWORD}">
 )

@@ -114,6 +114,8 @@ All applications require configuration through CMake variables. These can be set
   - `3` - Errors + Warnings + Info + Debug
   - `4` - Errors + Warnings + Info + Debug + Verbose
 
+**Note**: `DEBUG_LEVEL` can be configured via cmake-tools-kits.json for VS Code users, or passed as a CMake argument: `-DDEBUG_LEVEL=3`
+
 ### Example cmake-tools-kits.json Configuration
 
 ```json
