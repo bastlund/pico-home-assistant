@@ -1,9 +1,9 @@
-# Clangd configuration
-# Disable clangd formatting to prefer clang-format
+# Clangd configuration for Pico W project
+# Adds compile flags for better IntelliSense support
 CompileFlags:
   Add: [-std=c11, -Wall, -Wextra]
   
-# Use clang-format for formatting instead of clangd
+# Additional flags for Pico W specific files
 ---
 If:
   PathMatch: .*\.(c|h|cpp|hpp)$
