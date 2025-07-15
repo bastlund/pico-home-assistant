@@ -2,87 +2,29 @@
 
 Home Assistant integration using Raspberry Pi Pico W for IoT sensor applications.
 
+> 📋 **Quick Links:** [CHANGELOG.md](CHANGELOG.md) | [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases) | [Issues](https://github.com/bastlund/pico-home-assistant/issues)
+
 ## Overview
 
 This project contains four main applications for the Raspberry Pi Pico W, designed to work with WiFi networks and MQTT brokers.
 
-## Release Information
-
-### Current Release: v0.1.3-alpha
+## Current Release: v0.1.3-alpha
 
 **DS18B20 Digital Temperature Sensor Integration**
 
-This release introduces high-precision external temperature sensing capabilities and dual sensor monitoring:
+Latest features:
+- ✅ **Dual Temperature Monitoring** - Onboard ADC + external DS18B20 sensors
+- ✅ **Home Assistant Integration** - Automatic MQTT discovery with separate sensor entities
+- ✅ **Pure C DS18B20 Driver** - Custom 1-Wire implementation optimized for Pico W
+- ✅ **Development Tools** - Standalone monitoring application for diagnostics
 
-#### 🌡️ **DS18B20 Temperature Sensor Support**
-- ✅ **Pure C DS18B20 Driver** - Custom-built 1-Wire protocol implementation optimized for Pico W
-- ✅ **Dual Temperature Monitoring** - Simultaneous monitoring of onboard ADC and external DS18B20 sensors
-- ✅ **Home Assistant Integration** - Separate sensor entities for onboard and external temperature readings
-- ✅ **Robust Error Handling** - Graceful operation when external sensor is disconnected or fails
-- ✅ **Precision Timing** - Interrupt-safe communication using busy_wait for reliable 1-Wire protocol
-- ✅ **Development Tools** - Standalone DS18B20 monitoring application for sensor validation and diagnostics
-
-#### 🔧 **Technical Improvements**
-- **Temperature Accuracy**: DS18B20 provides ±0.5°C accuracy vs ±2°C for onboard sensor
-- **Panic Resolution**: Fixed "sleep in exception handler" errors in sensor communication
-- **MQTT Discovery**: Enhanced Home Assistant auto-discovery for dual sensor setup
-- **Documentation**: Complete hardware wiring instructions and configuration examples
-
-#### 📊 **Applications**
-- **pico_w_sensor**: Now supports dual temperature sensors with separate MQTT topics
-- **pico_w_ds18b20_monitor**: New standalone application for DS18B20 monitoring and diagnostics
-- **Hardware Support**: DS18B20 wiring guide with 4.7kΩ pull-up resistor requirements
-
-**Note:** As an alpha release, this version is suitable for testing and development. APIs and configuration may change in future releases.
-
-### Previous Release: v0.1.2-alpha
-
-**Code Architecture & Reliability Improvements**
-
-This release focused on code quality, maintainability, and improved startup reliability:
-
-#### 🏗️ **Code Refactoring & Architecture**
-- ✅ **Shared Version Display Module** - Extracted common stdio initialization and version display functionality into reusable `version_display.c/h` components
-- ✅ **DRY Principle Implementation** - Eliminated code duplication across all three applications, reducing maintenance overhead
-- ✅ **Intelligent USB Initialization** - Replaced fixed delays with `stdio_usb_connected()` smart detection for faster, more reliable startup
-- ✅ **Timeout Protection** - Added 10-second timeout for headless operation when no USB connection is available
-- ✅ **Consistent User Experience** - All applications now have identical, professional version information display
-- ✅ **Improved Build System** - Updated CMakeLists.txt to properly link shared components across all executables
-
-#### 🔧 **Technical Improvements**
-- **Startup Performance**: Applications start immediately when USB is connected, instead of waiting fixed delays
-- **Code Maintainability**: Single source of truth for stdio/version handling reduces bugs and simplifies updates  
-- **Memory Efficiency**: Reduced code duplication saves flash memory across all three applications
-- **Developer Experience**: Cleaner main() functions focus on core application logic
-
-#### 📊 **Metrics**
-- **Code Reduction**: ~400+ characters of duplicated code eliminated
-- **Consistency**: 100% identical stdio initialization across all applications
-- **Reliability**: Smart USB detection with fallback timeout for production deployments
-
-**Note:** As an alpha release, this version is suitable for testing and development. APIs and configuration may change in future releases.
-
-### Previous Release: v0.1.1-alpha
-
-The first alpha release of the Pico Home Assistant project included:
-
-- ✅ **Complete MQTT sensor** with Home Assistant auto-discovery
-- ✅ **Temperature monitoring** via onboard ADC sensor  
-- ✅ **WiFi connectivity** with automatic reconnection
-- ✅ **Network diagnostic tools** (ping and WiFi scan utilities)
-- ✅ **Configurable debug levels** (0-4) for development and production
-- ✅ **Professional licensing** (BSD-3-Clause) with proper attribution
-- ✅ **Comprehensive documentation** and build instructions
-
-**Note:** As an alpha release, this version is suitable for testing and development. APIs and configuration may change in future releases.
-
-For release notes and download links, visit [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases).
+> **Note:** This is an alpha release suitable for testing and development.  
+> 📖 **Full release history:** [CHANGELOG.md](CHANGELOG.md)  
+> 💾 **Downloads:** [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases)
 
 ## Quick Start
 
-### Get the Latest Stable Release
-
-To get the latest stable version, clone the repository and checkout the release tag:
+### Get the Latest Release
 
 ```bash
 git clone https://github.com/bastlund/pico-home-assistant.git
@@ -90,14 +32,7 @@ cd pico-home-assistant
 git checkout v0.1.3-alpha  # Replace with latest version from releases page
 ```
 
-Alternatively, download the release directly from [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases/latest).
-
-**Current stable version:** See [releases page](https://github.com/bastlund/pico-home-assistant/releases) for the latest version.
-
-### Development Version
-
-For the latest development code (may be unstable):
-
+For the latest development code:
 ```bash
 git clone https://github.com/bastlund/pico-home-assistant.git
 cd pico-home-assistant
@@ -299,5 +234,13 @@ make -j4
 - **WiFi connection failures**: Check credentials and signal strength
 - **MQTT connection issues**: Verify broker IP, port, and credentials
 - **Home Assistant discovery problems**: Ensure MQTT integration is enabled in Home Assistant
+
+---
+
+## Documentation
+
+- 📋 **[CHANGELOG.md](CHANGELOG.md)** - Complete version history and release notes
+- 💾 **[GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases)** - Download releases and binaries
+- 🐛 **[Issues](https://github.com/bastlund/pico-home-assistant/issues)** - Report bugs and request features
 
 
