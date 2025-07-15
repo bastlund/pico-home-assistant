@@ -185,3 +185,25 @@ add_compile_definitions(
     $<$<BOOL:${MQTT_PASSWORD}>:MQTT_PASSWORD="${MQTT_PASSWORD}">
 )
 
+# Optional: Enable testing for the main project
+# This allows running 'make test' from the main build directory
+# Tests are built for Linux host platform, not for Pico
+option(BUILD_TESTS "Build test suite (Linux host platform)" OFF)
+
+if(BUILD_TESTS)
+    # Add subdirectory for tests (builds for host platform)
+    add_subdirectory(tests EXCLUDE_FROM_ALL)
+    
+    # Add a custom target to run tests
+    add_custom_target(run_tests
+        COMMAND ${CMAKE_COMMAND} --build tests/build
+        COMMAND ${CMAKE_CTEST_COMMAND} --test-dir tests/build --output-on-failure
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Building and running test suite on host platform"
+    )
+    
+    message(STATUS "Test suite enabled (Linux host platform)")
+else()
+    message(STATUS "Test suite disabled (use -DBUILD_TESTS=ON to enable)")
+endif()
+
