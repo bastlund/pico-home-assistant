@@ -286,56 +286,6 @@ make -j4
 2. Copy the generated `.uf2` file to the Pico's mass storage device
 3. The device will automatically reboot and start running your application
 
-## Testing
-
-This project includes a comprehensive test suite that runs on the Linux host platform, enabling fast development and debugging without requiring Pico hardware.
-
-### Quick Test Run
-
-```bash
-# Run all tests
-./run_tests.sh
-```
-
-### VS Code Integration
-
-For the best developer experience, tests can be run directly in VS Code:
-
-1. **Install recommended extensions** (VS Code will suggest automatically)
-2. **Open Test Explorer**: `Ctrl+Shift+P` → `Test: Show Output`
-3. **Run tests**: Click ▶️ next to test names
-4. **Debug tests**: Click 🐛 for debugging with breakpoints
-5. **Use tasks**: `Ctrl+Shift+P` → `Tasks: Run Task` → choose test category
-
-See [VS Code Testing Guide](docs/VS_CODE_TESTING.md) for detailed instructions.
-
-### Test Suite Features
-
-- **Unity Test Framework** - Industry-standard C testing framework
-- **Mock System** - Complete Pico SDK mocking for hardware-independent testing
-- **Unit Tests** - Test individual components (DS18B20 utilities, string functions, etc.)
-- **Integration Tests** - Test component interactions and system behavior
-- **Coverage Reports** - Code coverage analysis (requires lcov)
-
-### Manual Test Execution
-
-```bash
-# Build and run tests manually
-cd tests
-cmake -B build -S .
-cmake --build build
-cd build && ctest --output-on-failure
-```
-
-### Test Categories
-
-- **DS18B20 Tests** - Temperature conversion, error handling, range validation
-- **Utility Tests** - String formatting, version management, helper functions
-- **Integration Tests** - System initialization, sensor communication protocols, error scenarios
-- **Mock Validation** - GPIO behavior, timing functions, hardware simulation
-
-For detailed testing documentation, see [tests/README.md](tests/README.md).
-
 ## Troubleshooting
 
 ### Common Build Issues
