@@ -1,122 +1,122 @@
-# Test Suite för Pico Home Assistant
+# Test Suite for Pico Home Assistant
 
-Detta är testsystemet för Pico Home Assistant-projektet. Testerna körs på Linux-värddatorn snarare än på Pico-hårdvaran, vilket möjliggör snabb utveckling och debugging.
+This is the test system for the Pico Home Assistant project. Tests run on the Linux host machine rather than on Pico hardware, enabling fast development and debugging.
 
-## 🏗️ **Arkitektur**
+## 🏗️ **Architecture**
 
 ```
 tests/
-├── CMakeLists.txt          # Test-specifik CMake konfiguration
-├── unit/                   # Unit tests (isolerade komponenter)
-│   ├── test_ds18b20.c     # DS18B20 utility-funktioner
-│   ├── test_utils.c       # Allmänna utility-funktioner
-│   ├── ds18b20_utils.c    # Testbara DS18B20 funktioner
-│   └── mocks/              # Mock-implementationer för Pico SDK
-│       ├── mock_gpio.c    # GPIO mock för Linux
-│       └── mock_pico.c    # Pico SDK core funktioner mock
+├── CMakeLists.txt          # Test-specific CMake configuration
+├── unit/                   # Unit tests (isolated components)
+│   ├── test_ds18b20.c     # DS18B20 utility functions
+│   ├── test_utils.c       # General utility functions
+│   ├── ds18b20_utils.c    # Testable DS18B20 functions
+│   └── mocks/              # Mock implementations for Pico SDK
+│       ├── mock_gpio.c    # GPIO mock for Linux
+│       └── mock_pico.c    # Pico SDK core functions mock
 ├── integration/            # Integration tests
-│   └── test_full_system.c # End-to-end system-tester
-├── fixtures/               # Test hjälpfunktioner
-│   ├── test_helpers.c     # Gemensamma test utilities
+│   └── test_full_system.c # End-to-end system tests
+├── fixtures/               # Test helper functions
+│   ├── test_helpers.c     # Common test utilities
 │   └── test_helpers.h
-└── vendor/                 # Externa test frameworks
+└── vendor/                 # External test frameworks
     └── Unity/              # Unity test framework
 ```
 
-## 🚀 **Snabbstart**
+## 🚀 **Quick Start**
 
-### Kör alla tester
+### Run all tests
 ```bash
-# Från projektets rotmapp
+# From project root directory
 ./run_tests.sh
 ```
 
 ### VS Code Integration
 
-För en optimal utvecklarupplevelse kan testerna köras direkt i VS Code:
+For an optimal developer experience, tests can be run directly in VS Code:
 
 **Installation:**
-1. Installera rekommenderade extensions (VS Code föreslår automatiskt)
-2. Öppna Test Explorer (`Ctrl+Shift+P` → `Test: Show Output`)
+1. Install recommended extensions (VS Code suggests automatically)
+2. Open Test Explorer (`Ctrl+Shift+P` → `Test: Show Output`)
 
-**Användning:**
-- **Kör tester:** Klicka ▶️ i Test Explorer
-- **Debug tester:** Klicka 🐛 för debugging med breakpoints  
-- **Tasks:** `Ctrl+Shift+P` → `Tasks: Run Task` → välj test-kategori
+**Usage:**
+- **Run tests:** Click ▶️ in Test Explorer
+- **Debug tests:** Click 🐛 for debugging with breakpoints  
+- **Tasks:** `Ctrl+Shift+P` → `Tasks: Run Task` → select test category
 
-Se [VS Code Testing Guide](../docs/VS_CODE_TESTING.md) för detaljerade instruktioner.
+See [VS Code Testing Guide](../docs/VS_CODE_TESTING.md) for detailed instructions.
 
-### Manuell körning
+### Manual execution
 ```bash
-# Bygg testerna
+# Build tests
 cd tests
 cmake -B build -S .
 cmake --build build
 
-# Kör testerna
+# Run tests
 cd build
 ctest --output-on-failure
 ```
 
-### Bygg från huvudprojektet (valfritt)
+### Build from main project (optional)
 ```bash
-# Aktivera tester i huvudbygget
+# Enable tests in main build
 cmake -B build -S . -DBUILD_TESTS=ON
 
-# Kör tester via huvudprojektet
+# Run tests via main project
 make -C build run_tests
 ```
 
 ## 🧪 **Test Framework**
 
-**Unity**: Lightweight C test framework som är populärt för embedded development
-- Header-only för enkla tester
-- Inga externa beroenden
-- Utmärkt felrapportering
-- Stöd för custom assertions
+**Unity**: Lightweight C test framework popular for embedded development
+- Header-only for simple tests
+- No external dependencies
+- Excellent error reporting
+- Support for custom assertions
 
 ## 🎭 **Mock System**
 
 ### GPIO Mock (`mock_gpio.c`)
-- Simulerar Pico SDK GPIO-funktioner
-- Spårar tillstånd för alla GPIO-pins (0-29)
-- Validerar anrop (init, set_dir, put, get)
-- Call count tracking för verifiering
+- Simulates Pico SDK GPIO functions
+- Tracks state for all GPIO pins (0-29)
+- Validates calls (init, set_dir, put, get)
+- Call count tracking for verification
 
 ### Pico Core Mock (`mock_pico.c`)
-- Simulerar timing-funktioner (sleep_ms, sleep_us)
-- Mock time tracking med auto-increment
-- stdio_init_all() och andra core funktioner
+- Simulates timing functions (sleep_ms, sleep_us)
+- Mock time tracking with auto-increment
+- stdio_init_all() and other core functions
 
-## 📊 **Testkategorier**
+## 📊 **Test Categories**
 
 ### Unit Tests
-- **test_ds18b20.c**: Testar DS18B20 utility-funktioner
-  - Celsius till Fahrenheit konvertering
-  - Error string mappning
+- **test_ds18b20.c**: Tests DS18B20 utility functions
+  - Celsius to Fahrenheit conversion
+  - Error string mapping
   - Temperature range validation
-  - Mock GPIO beteende
+  - Mock GPIO behavior
 
-- **test_utils.c**: Testar allmänna utilities
+- **test_utils.c**: Tests general utilities
   - String formatting
-  - Version hantering
-  - Time mock funktionalitet
+  - Version handling
+  - Time mock functionality
   - Helper function reliability
 
 ### Integration Tests
-- **test_full_system.c**: End-to-end system tester
-  - System initialization sekvens
+- **test_full_system.c**: End-to-end system tests
+  - System initialization sequence
   - Sensor communication protocol simulation
   - Error handling scenarios
   - Timing requirements validation
   - Resource cleanup verification
 
-## 🔧 **Utveckling av Nya Tester**
+## 🔧 **Developing New Tests**
 
-### Lägg till ett unit test
-1. Skapa test-fil: `tests/unit/test_mynewfeature.c`
-2. Lägg till i CMakeLists.txt: `add_unit_test(test_mynewfeature unit/test_mynewfeature.c)`
-3. Implementera med Unity macros:
+### Add a unit test
+1. Create test file: `tests/unit/test_mynewfeature.c`
+2. Add to CMakeLists.txt: `add_unit_test(test_mynewfeature unit/test_mynewfeature.c)`
+3. Implement with Unity macros:
    ```c
    #include "unity.h"
    #include "test_helpers.h"
@@ -132,44 +132,44 @@ make -C build run_tests
    }
    ```
 
-### Lägg till mock-funktionalitet
-1. Implementera mock i `tests/unit/mocks/`
-2. Lägg till mock-kontroll funktioner
-3. Uppdatera `pico_mocks` library i CMakeLists.txt
+### Add mock functionality
+1. Implement mock in `tests/unit/mocks/`
+2. Add mock control functions
+3. Update `pico_mocks` library in CMakeLists.txt
 
 ## 📈 **Code Coverage**
 
-För att generera coverage-rapport (kräver lcov):
+To generate coverage report (requires lcov):
 ```bash
-# Installera verktyg
+# Install tools
 sudo apt install lcov
 
-# Kör tester med coverage
+# Run tests with coverage
 ./run_tests.sh
 
-# Öppna rapport
+# Open report
 firefox tests/build/coverage_html/index.html
 ```
 
 ## 🎯 **Best Practices**
 
 ### Test Organization
-- Ett test per funktion/feature
-- Klara test-namn som beskriver vad som testas
-- Gruppera relaterade tester i samma fil
-- Använd `setUp()` och `tearDown()` för cleanup
+- One test per function/feature
+- Clear test names describing what is tested
+- Group related tests in same file
+- Use `setUp()` and `tearDown()` for cleanup
 
 ### Mock Usage
-- Återställ alltid mocks mellan tester
-- Använd state inspection för verifiering
-- Simulera både success och error scenarios
-- Testa edge cases och error conditions
+- Always reset mocks between tests
+- Use state inspection for verification
+- Simulate both success and error scenarios
+- Test edge cases and error conditions
 
 ### Assertions
-- Använd specifika Unity assertions (TEST_ASSERT_EQUAL, TEST_ASSERT_FLOAT_WITHIN)
-- Inkludera beskrivande felmeddelanden
-- Testa både positiva och negativa fall
-- Validera all output, inte bara return values
+- Use specific Unity assertions (TEST_ASSERT_EQUAL, TEST_ASSERT_FLOAT_WITHIN)
+- Include descriptive error messages
+- Test both positive and negative cases
+- Validate all output, not just return values
 
 ## 🔍 **Debugging**
 
@@ -179,7 +179,7 @@ cd tests/build
 ctest --verbose
 ```
 
-### Debug specifikt test
+### Debug specific test
 ```bash
 cd tests/build
 gdb ./test_ds18b20
@@ -187,13 +187,13 @@ gdb ./test_ds18b20
 ```
 
 ### Print debugging
-Alla mock-funktioner skriver debug-output som visar vad som händer.
+All mock functions write debug output showing what happens.
 
-## 🌟 **Fördelar med denna approach**
+## 🌟 **Benefits of this approach**
 
-1. **Snabba tester**: Körs på Linux istället för embedded target
-2. **Deterministiska**: Mocks ger kontrollerbar miljö
-3. **CI/CD friendly**: Lätt att integrera i automated builds
-4. **Debug-vänlig**: Kan använda standard Linux debug-verktyg
-5. **Isolerad**: Kan testa komponenter oberoende av hårdvara
-6. **Skalbar**: Lätt att lägga till nya tester när projektet växer
+1. **Fast tests**: Run on Linux instead of embedded target
+2. **Deterministic**: Mocks provide controllable environment
+3. **CI/CD friendly**: Easy to integrate in automated builds
+4. **Debug-friendly**: Can use standard Linux debug tools
+5. **Isolated**: Can test components independent of hardware
+6. **Scalable**: Easy to add new tests as project grows
