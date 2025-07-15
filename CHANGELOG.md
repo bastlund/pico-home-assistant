@@ -1,3 +1,36 @@
+# Release Information
+
+All releases, version history, and detailed change logs for the Pico Home Assistant project.
+
+> 💾 **Quick Downloads:** [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases)  
+> 🏠 **Back to main:** [README.md](README.md)
+
+---
+
+## Current Release: v0.1.3-alpha
+
+**DS18B20 Digital Temperature Sensor Integration**
+
+This release introduces high-precision external temperature sensing capabilities and dual sensor monitoring.
+
+### 🌡️ **Key Features**
+- ✅ **Dual Temperature Monitoring** - Onboard ADC + external DS18B20 sensors
+- ✅ **Home Assistant Integration** - Automatic MQTT discovery with separate sensor entities  
+- ✅ **Pure C DS18B20 Driver** - Custom 1-Wire implementation optimized for Pico W
+- ✅ **Development Tools** - Standalone monitoring application for diagnostics
+- ✅ **Robust Error Handling** - Graceful operation when external sensor is disconnected
+
+### 📦 **Installation**
+```bash
+git clone https://github.com/bastlund/pico-home-assistant.git
+cd pico-home-assistant
+git checkout v0.1.3-alpha
+```
+
+> **Note:** This is an alpha release suitable for testing and development. APIs and configuration may change in future releases.
+
+---
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

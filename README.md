@@ -2,41 +2,53 @@
 
 Home Assistant integration using Raspberry Pi Pico W for IoT sensor applications.
 
-> 📋 **Quick Links:** [CHANGELOG.md](CHANGELOG.md) | [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases) | [Issues](https://github.com/bastlund/pico-home-assistant/issues)
+> 📋 **Quick Links:** [Releases & Changelog](CHANGELOG.md) | [Downloads](https://github.com/bastlund/pico-home-assistant/releases) | [Issues](https://github.com/bastlund/pico-home-assistant/issues)
 
 ## Overview
 
 This project contains four main applications for the Raspberry Pi Pico W, designed to work with WiFi networks and MQTT brokers.
 
-## Current Release: v0.1.3-alpha
-
-**DS18B20 Digital Temperature Sensor Integration**
-
-Latest features:
-- ✅ **Dual Temperature Monitoring** - Onboard ADC + external DS18B20 sensors
-- ✅ **Home Assistant Integration** - Automatic MQTT discovery with separate sensor entities
-- ✅ **Pure C DS18B20 Driver** - Custom 1-Wire implementation optimized for Pico W
-- ✅ **Development Tools** - Standalone monitoring application for diagnostics
-
-> **Note:** This is an alpha release suitable for testing and development.  
-> 📖 **Full release history:** [CHANGELOG.md](CHANGELOG.md)  
-> 💾 **Downloads:** [GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases)
-
 ## Quick Start
 
 ### Get the Latest Release
 
+**Option 1: Automatic latest release (recommended)**
 ```bash
 git clone https://github.com/bastlund/pico-home-assistant.git
 cd pico-home-assistant
-git checkout v0.1.3-alpha  # Replace with latest version from releases page
+# Automatically checkout the latest release tag
+git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+```
+
+**Option 2: Using GitHub CLI**
+```bash
+git clone https://github.com/bastlund/pico-home-assistant.git
+cd pico-home-assistant
+# Get latest release tag using GitHub CLI
+git checkout $(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+```
+
+**Option 3: Manual specific version**
+```bash
+git clone https://github.com/bastlund/pico-home-assistant.git
+cd pico-home-assistant
+# Replace with specific version from releases page
+git checkout v0.1.3-alpha
 ```
 
 For the latest development code:
 ```bash
 git clone https://github.com/bastlund/pico-home-assistant.git
 cd pico-home-assistant
-# Uses main branch by default
+# Uses main branch by default - may be unstable
+```
+
+**Verify your version:**
+```bash
+# Check current tag/version
+git describe --tags --exact-match 2>/dev/null || echo "Development version"
+# Or check commit info
+git log --oneline -1
 ```
 
 ## Build Targets
@@ -239,7 +251,7 @@ make -j4
 
 ## Documentation
 
-- 📋 **[CHANGELOG.md](CHANGELOG.md)** - Complete version history and release notes
+- 📋 **[Releases & Changelog](CHANGELOG.md)** - Current release info and complete version history
 - 💾 **[GitHub Releases](https://github.com/bastlund/pico-home-assistant/releases)** - Download releases and binaries
 - 🐛 **[Issues](https://github.com/bastlund/pico-home-assistant/issues)** - Report bugs and request features
 
